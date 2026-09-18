@@ -57,12 +57,21 @@ jobs:
           TAG="${{ github.ref_name || github.event.inputs.tag_name }}"
           VERSION="${TAG#v}"
           echo "Extracting release notes for version: $VERSION"
-          # Extract section from CHANGELOG.md
-          awk -v ver="## \\[$VERSION\\]" '
-            $0 ~ ver {flag=1; next}
-            /^## \\[/ && flag {exit}
-            flag {print}
-          ' CHANGELOG.md > release_notes.md
+          node -e "
+            const fs = require('fs');
+            const version = process.argv[1];
+            const content = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const startTag = '## [' + version + ']';
+            const startIndex = content.indexOf(startTag);
+            if (startIndex !== -1) {
+              const afterStart = content.slice(startIndex + startTag.length);
+              const endMatch = afterStart.search(/\n##\s+/);
+              const body = (endMatch !== -1 ? afterStart.slice(0, endMatch) : afterStart).replace(/^[^\n]*\n/, '').trim();
+              fs.writeFileSync('release_notes.md', body);
+            } else {
+              fs.writeFileSync('release_notes.md', 'Release ' + version);
+            }
+          " "$VERSION"
           cat release_notes.md
 
       - name: Create GitHub Release
