@@ -17,13 +17,14 @@ import { SafeModeWatchdog } from '../safety/watchdog.js';
 import { ConfigSanitizer } from '../safety/sanitizer.js';
 import { formatBatchDiff, type DiffEntry } from '../safety/diff.js';
 import type { InterfaceTrafficMonitor } from '../client/types.js';
+import { McpInstaller, type IdeTarget } from '../mcp/installer.js';
 
 const program = new Command();
 
 program
   .name('mtik')
   .description('Production-grade MikroTik RouterOS v7 automation and network management CLI.')
-  .version('1.0.0');
+  .version('1.0.1');
 
 program
   .command('test')
@@ -501,6 +502,54 @@ program
       }
     } catch (err) {
       console.error(chalk.red(`Profile operation failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('install-mcp')
+  .description('Install and configure MikroTik MCP server into your IDE (Antigravity, Cursor, Claude, Windsurf, or all).')
+  .option('-t, --target <ide>', 'Target IDE: antigravity | cursor | claude | windsurf | all', 'all')
+  .option('--no-global', 'Use direct node script path instead of global mtik-mcp binary')
+  .option('--with-env', 'Include credentials from current .env in IDE configuration', false)
+  .action((opts) => {
+    try {
+      const target = (opts.target || 'all').toLowerCase() as IdeTarget;
+      const validTargets: IdeTarget[] = ['antigravity', 'cursor', 'claude', 'windsurf', 'all'];
+
+      if (!validTargets.includes(target)) {
+        console.error(chalk.red(`Invalid target: '${opts.target}'. Choose from: ${validTargets.join(', ')}`));
+        process.exitCode = 1;
+        return;
+      }
+
+      const routerConfig = opts.withEnv ? loadRouterConfig() : undefined;
+      const useGlobal = opts.global !== false;
+
+      console.log(chalk.cyan.bold(`\nInstalling MikroTik MCP Server (Target: ${target.toUpperCase()})...`));
+      console.log(chalk.gray(`Mode: ${useGlobal ? 'Global Binary (mtik-mcp)' : 'Node Script Path'}`));
+      if (routerConfig) {
+        console.log(chalk.gray(`Credentials: Injected from .env (${routerConfig.host})`));
+      }
+
+      const results = McpInstaller.install({
+        target,
+        useGlobal,
+        config: routerConfig,
+      });
+
+      console.log('');
+      for (const res of results) {
+        if (res.success) {
+          console.log(`${chalk.green('✔')} ${chalk.bold(res.ide.padEnd(14, ' '))}: ${chalk.gray(res.configPath)}`);
+        } else {
+          console.log(`${chalk.red('✖')} ${chalk.bold(res.ide.padEnd(14, ' '))}: ${chalk.red(res.error || 'Failed')}`);
+        }
+      }
+
+      console.log(chalk.green.bold('\nInstallation complete! Restart your IDE to activate MikroTik tools.\n'));
+    } catch (err) {
+      console.error(chalk.red(`Installation failed: ${err instanceof Error ? err.message : String(err)}`));
       process.exitCode = 1;
     }
   });

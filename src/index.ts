@@ -8,3 +8,4 @@ export * from './safety/watchdog.js';
 export * from './safety/order-engine.js';
 export * from './safety/auditor.js';
 export * from './safety/sanitizer.js';
+export * from './mcp/installer.js';
