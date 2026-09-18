@@ -1,0 +1,508 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import { Command } from 'commander';
+import chalk from 'chalk';
+import {
+  loadRouterConfig,
+  sanitizeConfig,
+  saveProfile,
+  listProfiles,
+  setActiveProfile,
+} from '../config/profile.js';
+import { ConnectionManager } from '../client/connection-manager.js';
+import { SecurityAuditor } from '../safety/auditor.js';
+import { MangleOrderEngine } from '../safety/order-engine.js';
+import { SafeModeWatchdog } from '../safety/watchdog.js';
+import { ConfigSanitizer } from '../safety/sanitizer.js';
+import { formatBatchDiff, type DiffEntry } from '../safety/diff.js';
+import type { InterfaceTrafficMonitor } from '../client/types.js';
+
+const program = new Command();
+
+program
+  .name('mtik')
+  .description('Production-grade MikroTik RouterOS v7 automation and network management CLI.')
+  .version('1.0.0');
+
+program
+  .command('test')
+  .description('Test connectivity and transport detection (REST API vs Native API Port 8728).')
+  .action(async () => {
+    const config = loadRouterConfig();
+    const safeCfg = sanitizeConfig(config);
+    console.log(chalk.blue(`Target: ${safeCfg.host} (User: ${safeCfg.user})`));
+
+    const conn = new ConnectionManager(config);
+    try {
+      const result = await conn.testConnection();
+      if (result.successful) {
+        console.log(chalk.green('Connection verified:'));
+        console.log(`  Transport : ${chalk.bold(result.transport.toUpperCase())} (Port ${result.port})`);
+        console.log(`  RouterOS  : ${result.routerOsVersion || 'v7.x'}`);
+        console.log(`  Hardware  : ${result.boardModel || 'Unknown'}`);
+        console.log(`  Uptime    : ${result.uptime || 'Unknown'}`);
+        console.log(`  Latency   : ${result.latencyMs} ms`);
+      } else {
+        console.error(chalk.red(`Connection failed: ${result.error || 'Unknown error'}`));
+        process.exitCode = 1;
+      }
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('status')
+  .description('Show router health, resource utilization, and interface overview.')
+  .action(async () => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+    try {
+      const [resource, ifaces, leases] = await Promise.all([
+        conn.getResource(),
+        conn.getInterfaces().catch(() => []),
+        conn.getDhcpLeases().catch(() => []),
+      ]);
+
+      console.log(chalk.cyan.bold('\n=== MikroTik RouterOS v7 Status ==='));
+      console.log(`Router Model  : ${resource.board || resource.platform || 'MikroTik'}`);
+      console.log(`Firmware Ver  : ${resource.version || 'v7.x'}`);
+      console.log(`Uptime        : ${resource.uptime || 'N/A'}`);
+      console.log(`CPU Load      : ${resource['cpu-load'] || 0}% (${resource['cpu-count'] || 1} cores)`);
+      console.log(`Memory Free   : ${Math.round(Number(resource['free-memory'] || 0) / 1024 / 1024)} MB / ${Math.round(Number(resource['total-memory'] || 0) / 1024 / 1024)} MB`);
+      console.log(`Interfaces    : ${ifaces.length} total (${ifaces.filter((i) => i.running === true || i.running === 'true').length} running)`);
+      console.log(`DHCP Leases   : ${leases.length} active leases\n`);
+    } catch (err) {
+      console.error(chalk.red(`Failed to fetch status: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('audit')
+  .description('Execute automated 7-Pillar Security & Configuration Audit on RouterOS v7.')
+  .action(async () => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+    const auditor = new SecurityAuditor(conn);
+
+    try {
+      console.log(chalk.blue('Running 7-Pillar Security Audit...'));
+      const report = await auditor.runFullAudit();
+
+      console.log(chalk.bold(`\nAudit Report for ${report.routerIdentity} (${report.firmwareVersion})`));
+      console.log(`Status: ${report.overallScore === 'SECURE' ? chalk.green('SECURE') : report.overallScore === 'NEEDS_ATTENTION' ? chalk.yellow('NEEDS ATTENTION') : chalk.red('VULNERABLE')}\n`);
+
+      for (const item of report.items) {
+        let badge = chalk.green('[PASS]');
+        if (item.status === 'WARN') badge = chalk.yellow('[WARN]');
+        if (item.status === 'CRITICAL') badge = chalk.red('[CRIT]');
+        if (item.status === 'INFO') badge = chalk.blue('[INFO]');
+
+        console.log(`${badge} ${chalk.bold(item.title)}: ${item.detail}`);
+        if (item.remediationCommand) {
+          console.log(`       ${chalk.gray('Fix: ' + item.remediationCommand)}`);
+        }
+      }
+      console.log('');
+    } catch (err) {
+      console.error(chalk.red(`Audit execution failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('mangle')
+  .description('Manage and inspect firewall mangle rules.')
+  .option('-l, --list', 'List active mangle rules in order', true)
+  .action(async () => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      const rules = await conn.getMangleRules();
+      console.log(chalk.bold(`\nActive Mangle Rules (${rules.length} total):`));
+
+      const analysis = MangleOrderEngine.analyzePlacement(rules, config.localBypassList);
+      console.log(chalk.gray(`Hierarchy: ${analysis.bypassCount} bypass | ${analysis.dedicatedCount} dedicated priority | ${analysis.pccCount} PCC rules\n`));
+
+      rules.forEach((rule, idx) => {
+        const chain = chalk.cyan(rule.chain);
+        const action = chalk.yellow(rule.action);
+        const src = rule['src-address'] ? `src=${rule['src-address']} ` : '';
+        const dst = rule['dst-address'] ? `dst=${rule['dst-address']} ` : '';
+        const mark = rule['new-routing-mark'] ? `-> mark=${rule['new-routing-mark']} ` : '';
+        const comment = rule.comment ? chalk.gray(`; ${rule.comment}`) : '';
+
+        console.log(`[${idx.toString().padStart(2, '0')}] ${chain} ${action} ${src}${dst}${mark}${comment}`);
+      });
+      console.log('');
+    } catch (err) {
+      console.error(chalk.red(`Failed to list mangle rules: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('route-force')
+  .description('Enforce dedicated ISP routing for a specific IP address with safety validation.')
+  .requiredOption('--ip <address>', 'Client IP address to route')
+  .requiredOption('--table <name>', 'Target routing table mark (e.g. to_ISP1 or to_ISP2)')
+  .option('--comment <text>', 'Descriptive comment for the rule', 'Forced client routing')
+  .option('--dry-run', 'Simulate changes without applying to router', false)
+  .action(async (opts) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      const [tables, rules] = await Promise.all([
+        conn.getRoutingTables(),
+        conn.getMangleRules(),
+      ]);
+
+      // 1. Validate target table in RouterOS v7
+      const validation = MangleOrderEngine.validateRoutingMark(opts.table, tables);
+      if (!validation.valid) {
+        console.error(chalk.red(`Validation error: ${validation.reason}`));
+        process.exitCode = 1;
+        return;
+      }
+
+      // 2. Analyze placement hierarchy
+      const analysis = MangleOrderEngine.analyzePlacement(rules, config.localBypassList);
+      const targetRule = {
+        chain: 'prerouting',
+        action: 'mark-routing',
+        'src-address': opts.ip,
+        'new-routing-mark': opts.table,
+        passthrough: 'no',
+        comment: opts.comment,
+      };
+
+      const diff: DiffEntry = {
+        type: 'ADD',
+        target: `/ip/firewall/mangle (Target Index: ${analysis.recommendedIndex})`,
+        details: targetRule,
+      };
+
+      console.log(chalk.bold('\nProposed Changes:'));
+      console.log(formatBatchDiff([diff]));
+
+      if (opts.dryRun) {
+        console.log(chalk.yellow('Dry-run mode active. No changes were applied.\n'));
+        return;
+      }
+
+      // 3. Apply changes with Watchdog protection
+      const watchdog = new SafeModeWatchdog(conn);
+      console.log(chalk.blue(`Arming 30-second safe-mode watchdog...`));
+      await watchdog.arm(`/ip/firewall/mangle/remove [find comment="${opts.comment}"]`, config.watchdogTimeout);
+
+      console.log(chalk.blue('Injecting mangle rule...'));
+      await conn.addMangleRule(targetRule);
+
+      // Verify connection health after mutation
+      const test = await conn.testConnection();
+      if (test.successful) {
+        await watchdog.disarm();
+        console.log(chalk.green('Rule successfully applied and watchdog disarmed.\n'));
+      } else {
+        console.error(chalk.red('Router heartbeat check failed! Watchdog will automatically rollback.\n'));
+        process.exitCode = 1;
+      }
+    } catch (err) {
+      console.error(chalk.red(`Operation failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('lease')
+  .description('Manage DHCP server leases.')
+  .option('-l, --list', 'List active DHCP leases', true)
+  .option('--add', 'Add a static lease')
+  .option('--ip <address>', 'IP address for static lease')
+  .option('--mac <address>', 'MAC address for static lease')
+  .option('--comment <text>', 'Client name / description')
+  .action(async (opts) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      if (opts.add) {
+        if (!opts.ip || !opts.mac) {
+          console.error(chalk.red('Both --ip and --mac are required to add a static lease.'));
+          process.exitCode = 1;
+          return;
+        }
+
+        const leaseData = {
+          address: opts.ip,
+          'mac-address': opts.mac,
+          comment: opts.comment || 'Static reservation',
+        };
+
+        const diff: DiffEntry = {
+          type: 'ADD',
+          target: '/ip/dhcp-server/lease',
+          details: leaseData,
+        };
+
+        console.log(formatBatchDiff([diff]));
+        await conn.addDhcpLease(leaseData);
+        console.log(chalk.green('Static DHCP lease created successfully.\n'));
+      } else {
+        const leases = await conn.getDhcpLeases();
+        console.log(chalk.bold(`\nDHCP Leases (${leases.length} total):`));
+        leases.forEach((l) => {
+          const type = l.dynamic === true || l.dynamic === 'true' ? chalk.yellow('DYNAMIC') : chalk.green('STATIC ');
+          const ip = l.address.padEnd(16, ' ');
+          const mac = l['mac-address'].padEnd(18, ' ');
+          const host = l['host-name'] || l.comment || '-';
+          console.log(`[${type}] ${ip} ${mac} (${host})`);
+        });
+        console.log('');
+      }
+    } catch (err) {
+      console.error(chalk.red(`DHCP operation failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('backup')
+  .description('Download and store timestamped configuration snapshot.')
+  .option('-o, --output <dir>', 'Output directory', './backups')
+  .option('--sanitize', 'Anonymize MAC addresses, serials, and passwords in the snapshot', false)
+  .action(async (opts) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      console.log(chalk.blue('Collecting router configuration data...'));
+      const [resource, mangle, leases, tables, filters, services] = await Promise.all([
+        conn.getResource(),
+        conn.getMangleRules().catch(() => []),
+        conn.getDhcpLeases().catch(() => []),
+        conn.getRoutingTables().catch(() => []),
+        conn.getFirewallFilters().catch(() => []),
+        conn.getIpServices().catch(() => []),
+      ]);
+
+      let backupData: Record<string, unknown> = {
+        meta: {
+          exportedAt: new Date().toISOString(),
+          router: resource.board || resource.platform || 'MikroTik',
+          version: resource.version || 'v7.x',
+        },
+        routingTables: tables,
+        mangleRules: mangle,
+        firewallFilters: filters,
+        dhcpLeases: leases,
+        ipServices: services,
+      };
+
+      if (opts.sanitize) {
+        console.log(chalk.yellow('Sanitizing sensitive identifiers (MACs, serials, passwords)...'));
+        backupData = ConfigSanitizer.sanitizeObject(backupData);
+      }
+
+      const outDir = path.resolve(process.cwd(), opts.output);
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+      }
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const suffix = opts.sanitize ? '-sanitized' : '';
+      const filename = `mikrotik-backup-${dateStr}-${Date.now()}${suffix}.json`;
+      const targetPath = path.join(outDir, filename);
+
+      fs.writeFileSync(targetPath, JSON.stringify(backupData, null, 2), 'utf-8');
+      console.log(chalk.green(`Configuration snapshot successfully saved to:`));
+      console.log(`  ${chalk.bold(targetPath)}\n`);
+    } catch (err) {
+      console.error(chalk.red(`Backup failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('monitor')
+  .description('Live throughput and traffic monitor across interfaces.')
+  .option('-i, --interface <name>', 'Specific interface to monitor')
+  .action(async (opts) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      console.log(chalk.cyan.bold('\n=== MikroTik Live Traffic Monitor (Press Ctrl+C to stop) ==='));
+      const ifaces = await conn.getInterfaces();
+      const targetNames = opts.interface
+        ? [opts.interface]
+        : ifaces.filter((i) => i.running === true || i.running === 'true').slice(0, 4).map((i) => i.name);
+
+      console.log(`Monitoring: ${targetNames.join(', ')}\n`);
+
+      const poll = async () => {
+        const results = await Promise.all(
+          targetNames.map((name) =>
+            conn.getInterfaceTraffic(name).catch(() => ({ name } as InterfaceTrafficMonitor))
+          )
+        );
+
+        console.clear();
+        console.log(chalk.cyan.bold('=== MikroTik Real-Time Interface Throughput ==='));
+        console.log(chalk.gray(`Updated: ${new Date().toLocaleTimeString()}\n`));
+
+        for (const item of results) {
+          const rxBps = Number(item['rx-bits-per-second'] || 0);
+          const txBps = Number(item['tx-bits-per-second'] || 0);
+
+          const rxFormatted = rxBps > 1000000 ? `${(rxBps / 1000000).toFixed(2)} Mbps` : `${(rxBps / 1000).toFixed(1)} Kbps`;
+          const txFormatted = txBps > 1000000 ? `${(txBps / 1000000).toFixed(2)} Mbps` : `${(txBps / 1000).toFixed(1)} Kbps`;
+
+          console.log(`${chalk.bold(item.name.padEnd(16, ' '))} | RX: ${chalk.green(rxFormatted.padStart(12, ' '))} | TX: ${chalk.blue(txFormatted.padStart(12, ' '))}`);
+        }
+        console.log(chalk.gray('\nPress Ctrl+C to exit.'));
+      };
+
+      await poll();
+      const interval = setInterval(poll, 2000);
+
+      process.on('SIGINT', async () => {
+        clearInterval(interval);
+        await conn.close();
+        console.log('\nMonitor stopped.');
+        process.exit(0);
+      });
+    } catch (err) {
+      console.error(chalk.red(`Monitor error: ${err instanceof Error ? err.message : String(err)}`));
+      await conn.close();
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('container')
+  .description('Manage Docker microservices running on RouterOS v7.')
+  .option('-l, --list', 'List active containers', true)
+  .option('--restart <id>', 'Restart a specific container by ID or name')
+  .action(async (opts) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      if (opts.restart) {
+        console.log(chalk.blue(`Restarting container ${opts.restart}...`));
+        await conn.restartContainer(opts.restart);
+        console.log(chalk.green(`Container ${opts.restart} restart command sent.\n`));
+      } else {
+        const containers = await conn.getContainers();
+        console.log(chalk.bold(`\nDocker Containers (${containers.length} total):`));
+        if (containers.length === 0) {
+          console.log(chalk.gray('No containers configured.'));
+        } else {
+          containers.forEach((c) => {
+            const status = c.status === 'running' ? chalk.green('RUNNING') : chalk.yellow(c.status?.toUpperCase() || 'STOPPED');
+            const name = c.comment || c.name || c.tag || 'container';
+            console.log(`[${status}] ${chalk.bold(name)} (veth: ${c.interface || '-'}, root: ${c['root-dir'] || '-'})`);
+          });
+        }
+        console.log('');
+      }
+    } catch (err) {
+      console.error(chalk.red(`Container operation failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('adlist')
+  .description('Inspect or add DNS adblocker feed lists (/ip dns adlist).')
+  .option('-l, --list', 'Show configured adlist feeds', true)
+  .option('--add <url>', 'Add new adlist feed URL')
+  .action(async (opts) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+
+    try {
+      if (opts.add) {
+        console.log(chalk.blue(`Adding adlist feed: ${opts.add}...`));
+        await conn.addDnsAdlist(opts.add);
+        console.log(chalk.green('Adlist feed registered successfully.\n'));
+      } else {
+        const adlists = await conn.getDnsAdlists();
+        console.log(chalk.bold(`\nDNS Adlist Feeds (${adlists.length} total):`));
+        if (adlists.length === 0) {
+          console.log(chalk.gray('No adlist feeds active.'));
+        } else {
+          adlists.forEach((a) => {
+            const status = a.disabled === true || a.disabled === 'true' ? chalk.red('DISABLED') : chalk.green('ACTIVE  ');
+            console.log(`[${status}] ${a.url}`);
+          });
+        }
+        console.log('');
+      }
+    } catch (err) {
+      console.error(chalk.red(`Adlist operation failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('profile')
+  .description('Manage and switch multiple router target profiles.')
+  .option('-l, --list', 'List stored router profiles', true)
+  .option('--switch <name>', 'Switch active target profile')
+  .option('--save <name>', 'Save current environment as a named profile')
+  .action(async (opts) => {
+    try {
+      if (opts.save) {
+        const currentCfg = loadRouterConfig();
+        saveProfile(opts.save, currentCfg, true);
+        console.log(chalk.green(`Profile '${opts.save}' saved successfully as active profile.\n`));
+      } else if (opts.switch) {
+        const success = setActiveProfile(opts.switch);
+        if (success) {
+          console.log(chalk.green(`Switched active profile to '${opts.switch}'.\n`));
+        } else {
+          console.error(chalk.red(`Profile '${opts.switch}' not found.`));
+          process.exitCode = 1;
+        }
+      } else {
+        const profiles = listProfiles();
+        console.log(chalk.bold(`\nStored Router Profiles (${profiles.length} total):`));
+        if (profiles.length === 0) {
+          console.log(chalk.gray('No stored profiles. Run: mtik profile --save <name> to store one.'));
+        } else {
+          profiles.forEach((p) => {
+            const marker = p.active ? chalk.green('★ [ACTIVE]') : chalk.gray('  [INACTIVE]');
+            console.log(`${marker} ${chalk.bold(p.name.padEnd(16, ' '))} -> ${p.host} (${p.user})`);
+          });
+        }
+        console.log('');
+      }
+    } catch (err) {
+      console.error(chalk.red(`Profile operation failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    }
+  });
+
+program.parse(process.argv);

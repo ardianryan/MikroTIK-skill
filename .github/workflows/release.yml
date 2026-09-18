@@ -1,0 +1,86 @@
+name: Release & Packaging
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Typecheck
+        run: npm run typecheck
+
+      - name: Run Unit Tests
+        run: npm test
+
+      - name: Build Production Assets
+        run: npm run build
+
+      - name: Create Package Tarball
+        id: pack
+        run: |
+          PACKAGE_FILE=$(npm pack)
+          echo "package_file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
+          echo "Packed archive: $PACKAGE_FILE"
+
+      - name: Generate Release Notes from CHANGELOG
+        id: changelog
+        run: |
+          TAG="${{ github.ref_name || github.event.inputs.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "Extracting release notes for version: $VERSION"
+          # Extract section from CHANGELOG.md
+          awk -v ver="## \\[$VERSION\\]" '
+            $0 ~ ver {flag=1; next}
+            /^## \\[/ && flag {exit}
+            flag {print}
+          ' CHANGELOG.md > release_notes.md
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || github.event.inputs.tag_name }}
+          name: "Release ${{ github.ref_name || github.event.inputs.tag_name }}"
+          body_path: release_notes.md
+          files: |
+            ${{ steps.pack.outputs.package_file }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm (if NPM_TOKEN is provided)
+        if: env.NPM_TOKEN != ''
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,59 @@
+{
+  "name": "mikrotik-skill",
+  "version": "1.0.0",
+  "description": "Production-grade MikroTik RouterOS v7 automation skill, CLI toolkit, and MCP server for network engineers and AI agents.",
+  "author": "Ardian Ryan <me@ardianryan.com>",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "mtik": "dist/cli/index.js",
+    "mtik-mcp": "dist/mcp/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    ".agents/skills/mikrotik"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "mtik": "tsx src/cli/index.ts",
+    "mcp": "tsx src/mcp/index.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "mikrotik",
+    "routeros",
+    "routeros-v7",
+    "networking",
+    "cli",
+    "mcp",
+    "mcp-server",
+    "antigravity",
+    "wireguard",
+    "radius",
+    "cake-qos"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "node-routeros": "^1.6.9",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
