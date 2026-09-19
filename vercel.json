@@ -3,6 +3,18 @@
   "outputDirectory": "public",
   "rewrites": [
     {
+      "source": "/sse",
+      "destination": "/api?path=/sse"
+    },
+    {
+      "source": "/messages",
+      "destination": "/api?path=/messages"
+    },
+    {
+      "source": "/mcp",
+      "destination": "/api?path=/mcp"
+    },
+    {
       "source": "/openapi.json",
       "destination": "/api?path=/openapi.json"
     },

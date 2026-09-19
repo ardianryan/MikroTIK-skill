@@ -1,5 +1,8 @@
 import http, { type IncomingMessage, type ServerResponse } from 'node:http';
 import { URL } from 'node:url';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { createRemoteMcpServer } from './mcp.js';
 import { ConfigSanitizer } from '../safety/sanitizer.js';
 import { CertifiedTemplateGenerator, type CertificationTrack } from '../safety/templates.js';
 import { MangleOrderEngine } from '../safety/order-engine.js';
@@ -14,6 +17,7 @@ export interface HttpServerOptions {
 
 export class MikroTikHttpServer {
   private serverUrl: string;
+  private sseTransports = new Map<string, SSEServerTransport>();
 
   constructor(options: HttpServerOptions = {}) {
     this.serverUrl = options.serverUrl || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
@@ -66,11 +70,48 @@ export class MikroTikHttpServer {
         name: 'mikrotik-skill',
         version: '1.1.0',
         mode: 'knowledge-and-intelligence',
-        description: 'MikroTik RouterOS v7 Certified Knowledge & OpenAPI Gateway. Zero router credentials required.',
+        description: 'MikroTik RouterOS v7 Certified Knowledge, Remote MCP & OpenAPI Gateway. Zero router credentials required.',
+        mcp: {
+          sse: `${origin}/sse`,
+          streamableHttp: `${origin}/mcp`,
+        },
         openapi: `${origin}/openapi.json`,
         health: `${origin}/health`,
         tracks: `${origin}/api/v1/knowledge/tracks`,
       });
+      return;
+    }
+
+    if ((pathname === '/sse' || pathname === '/api/sse') && method === 'GET') {
+      const endpoint = '/api/messages';
+      const transport = new SSEServerTransport(endpoint, res);
+      this.sseTransports.set(transport.sessionId, transport);
+      transport.onclose = () => {
+        this.sseTransports.delete(transport.sessionId);
+      };
+      const mcpServer = createRemoteMcpServer();
+      await mcpServer.connect(transport);
+      return;
+    }
+
+    if ((pathname === '/messages' || pathname === '/api/messages') && method === 'POST') {
+      const sessionId = reqUrl.searchParams.get('sessionId') || '';
+      const transport = this.sseTransports.get(sessionId);
+      if (!transport) {
+        this.sendJson(res, 404, { error: `MCP session '${sessionId}' not found or expired.` });
+        return;
+      }
+      await transport.handlePostMessage(req, res);
+      return;
+    }
+
+    if (pathname === '/mcp' || pathname === '/api/mcp') {
+      const streamTransport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+      });
+      const mcpServer = createRemoteMcpServer();
+      await mcpServer.connect(streamTransport);
+      await streamTransport.handleRequest(req, res);
       return;
     }
 

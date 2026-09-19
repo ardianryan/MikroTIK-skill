@@ -255,21 +255,64 @@ Choose the integration method appropriate for your environment:
 
 ---
 
-### Web AI via Vercel Deployment (OpenAPI Actions)
-Deploy as an OpenAPI knowledge and template generation service for ChatGPT Actions without exposing your physical router.
+### Remote MCP & Web AI Gateway (`https://mikrotik-skill.vercel.app`)
 
-> Zero Router Credentials Required: Vercel acts purely as an offline knowledge engine. Router credentials and IP addresses are not needed.
+You can connect your favorite AI IDEs and chat assistants directly to the hosted public Remote MCP and OpenAPI knowledge gateway without installing any software or configuring router credentials:
 
-1. **Deploy to Vercel:**
-   ```bash
-   npx vercel
-   ```
-2. **Import into ChatGPT Custom GPT Actions:**
-   - In Custom GPT Editor -> **Actions** -> **Create new action**.
-   - Select **Import from URL** and enter:  
-     `https://<your-project-name>.vercel.app/openapi.json`
-   - Authentication: **None**.
-   - Save. ChatGPT can now query certified templates, validate mangle hierarchies, and sanitize configs offline.
+- **Gateway URL:** `https://mikrotik-skill.vercel.app`
+- **Remote MCP SSE Endpoint:** `https://mikrotik-skill.vercel.app/sse`
+- **OpenAPI 3.1.0 Specification:** `https://mikrotik-skill.vercel.app/openapi.json`
+
+#### 1. Cursor IDE (`.cursor/mcp.json` or Settings > MCP)
+```json
+{
+  "mcpServers": {
+    "mikrotik": {
+      "url": "https://mikrotik-skill.vercel.app/sse"
+    }
+  }
+}
+```
+
+#### 2. Windsurf IDE (`~/.codeium/windsurf/mcp_config.json`)
+```json
+{
+  "mcpServers": {
+    "mikrotik": {
+      "url": "https://mikrotik-skill.vercel.app/sse"
+    }
+  }
+}
+```
+
+#### 3. Claude Desktop (`claude_desktop_config.json`)
+```json
+{
+  "mcpServers": {
+    "mikrotik": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mikrotik-skill.vercel.app/sse"]
+    }
+  }
+}
+```
+
+#### 4. VS Code (Cline / Roo Code)
+In Cline MCP Settings tab:
+- **Server Name:** `mikrotik`
+- **Type:** `sse`
+- **URL:** `https://mikrotik-skill.vercel.app/sse`
+
+#### 5. Claude Code CLI
+```bash
+claude mcp add --transport sse mikrotik https://mikrotik-skill.vercel.app/sse
+```
+
+#### 6. ChatGPT Custom GPT Actions
+1. In Custom GPT Editor -> **Actions** -> **Create new action**.
+2. Select **Import from URL** and enter:
+   `https://mikrotik-skill.vercel.app/openapi.json`
+3. Authentication: **None**. Save and publish.
 
 ---
 

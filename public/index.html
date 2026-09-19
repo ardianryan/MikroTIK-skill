@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MikroTik Skill &mdash; RouterOS v7 Knowledge &amp; OpenAPI Gateway</title>
+  <title>MikroTik Skill &mdash; Remote MCP &amp; OpenAPI Knowledge Gateway</title>
   <style>
     :root {
       --bg: #0d1117;
       --card-bg: #161b22;
+      --card-hover: #1c2128;
       --border: #30363d;
       --text: #c9d1d9;
       --text-heading: #f0f6fc;
@@ -15,6 +16,7 @@
       --accent: #58a6ff;
       --accent-hover: #79b8ff;
       --green: #3fb950;
+      --purple: #bc8cff;
       --code-bg: #090d13;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -32,7 +34,7 @@
       padding: 2.5rem 1.5rem;
     }
     .container {
-      max-width: 880px;
+      max-width: 920px;
       margin: 0 auto;
     }
     header {
@@ -61,6 +63,11 @@
       color: var(--green);
       background: rgba(63, 185, 80, 0.1);
     }
+    .badge-mcp {
+      border-color: rgba(188, 140, 255, 0.4);
+      color: var(--purple);
+      background: rgba(188, 140, 255, 0.1);
+    }
     h1 {
       color: var(--text-heading);
       font-size: 1.85rem;
@@ -85,10 +92,67 @@
     }
     h2 {
       color: var(--text-heading);
-      font-size: 1.3rem;
+      font-size: 1.35rem;
       font-weight: 600;
-      margin-top: 2rem;
+      margin-top: 2.25rem;
       margin-bottom: 1rem;
+    }
+    .grid-tools {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .tool-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .tool-box h3 {
+      color: var(--text-heading);
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .tool-box p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+    }
+    .code-snippet {
+      position: relative;
+      margin-top: 0.5rem;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      color: var(--text-heading);
+      border-color: var(--accent);
     }
     .endpoints {
       display: flex;
@@ -105,7 +169,7 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
     .method {
       font-family: var(--font-mono);
@@ -125,6 +189,11 @@
       color: var(--green);
       border: 1px solid rgba(63, 185, 80, 0.3);
     }
+    .method-sse {
+      background: rgba(188, 140, 255, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(188, 140, 255, 0.3);
+    }
     .path a {
       color: var(--text-heading);
       font-family: var(--font-mono);
@@ -139,17 +208,6 @@
     .description {
       font-size: 0.88rem;
       color: var(--text-muted);
-    }
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      margin-top: 0.75rem;
-      color: var(--text);
     }
     footer {
       margin-top: 3rem;
@@ -176,26 +234,140 @@
     <header>
       <div class="badge-row">
         <span class="badge badge-active">Gateway Online</span>
+        <span class="badge badge-mcp">Remote MCP SSE Ready</span>
         <span class="badge">OpenAPI 3.1.0</span>
         <span class="badge">RouterOS v7</span>
         <span class="badge">Zero Router Credentials</span>
       </div>
-      <h1>MikroTik Skill Knowledge &amp; OpenAPI Gateway</h1>
-      <p class="lead">Air-gapped intelligence engine, certified configuration curricula, and schema gateway for AI pair programmers and ChatGPT Custom GPT Actions.</p>
+      <h1>MikroTik Skill Knowledge &amp; Remote MCP Gateway</h1>
+      <p class="lead">Universal air-gapped intelligence engine, certified configuration curricula, and Model Context Protocol (MCP) server for AI coding assistants, IDEs, and chatbots.</p>
     </header>
 
     <div class="callout">
-      <strong>Zero Router Credentials Required:</strong> This gateway operates strictly as an offline knowledge engine. Router IP addresses, credentials, and live network ports are never stored or requested by this service.
+      <strong>Zero Router Credentials Required:</strong> This gateway operates strictly as an air-gapped knowledge and validation engine. Connect any AI tool below without configuring router passwords or opening ports.
     </div>
 
-    <h2>Available Endpoints</h2>
+    <h2>1-Click AI Tool Setup (Remote MCP &amp; OpenAPI)</h2>
+    <div class="grid-tools">
+      <!-- Cursor -->
+      <div class="tool-box">
+        <div>
+          <h3>Cursor IDE</h3>
+          <p>Add to <code>.cursor/mcp.json</code> or via Features &gt; MCP &gt; Add Server (Type: SSE).</p>
+        </div>
+        <div class="code-snippet">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre>{
+  "mcpServers": {
+    "mikrotik": {
+      "url": "https://mikrotik-skill.vercel.app/sse"
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <!-- Windsurf -->
+      <div class="tool-box">
+        <div>
+          <h3>Windsurf IDE</h3>
+          <p>Add to <code>~/.codeium/windsurf/mcp_config.json</code> under <code>mcpServers</code>.</p>
+        </div>
+        <div class="code-snippet">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre>{
+  "mcpServers": {
+    "mikrotik": {
+      "url": "https://mikrotik-skill.vercel.app/sse"
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <!-- Claude Desktop -->
+      <div class="tool-box">
+        <div>
+          <h3>Claude Desktop</h3>
+          <p>Add to <code>claude_desktop_config.json</code> using the standard mcp-remote bridge.</p>
+        </div>
+        <div class="code-snippet">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre>{
+  "mcpServers": {
+    "mikrotik": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mikrotik-skill.vercel.app/sse"
+      ]
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <!-- VS Code (Cline / Roo Code / Continue) -->
+      <div class="tool-box">
+        <div>
+          <h3>VS Code (Cline / Roo)</h3>
+          <p>Add to Cline MCP settings tab with SSE transport.</p>
+        </div>
+        <div class="code-snippet">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre>{
+  "mcpServers": {
+    "mikrotik": {
+      "type": "sse",
+      "url": "https://mikrotik-skill.vercel.app/sse"
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <!-- Claude Code CLI -->
+      <div class="tool-box">
+        <div>
+          <h3>Claude Code CLI</h3>
+          <p>Execute in your terminal to register the remote MCP server directly.</p>
+        </div>
+        <div class="code-snippet">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre>claude mcp add --transport sse mikrotik https://mikrotik-skill.vercel.app/sse</pre>
+        </div>
+      </div>
+
+      <!-- ChatGPT Custom GPT -->
+      <div class="tool-box">
+        <div>
+          <h3>ChatGPT Custom GPT</h3>
+          <p>In GPT Builder &gt; Actions &gt; Import from URL (Authentication: None).</p>
+        </div>
+        <div class="code-snippet">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre>https://mikrotik-skill.vercel.app/openapi.json</pre>
+        </div>
+      </div>
+    </div>
+
+    <h2>Available Remote Endpoints</h2>
     <div class="endpoints">
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-sse">SSE</span>
+          <span class="path"><a href="/sse">/sse</a></span>
+        </div>
+        <div class="description">Native Model Context Protocol (MCP) Server-Sent Events endpoint for remote AI agents and IDEs.</div>
+      </div>
+
       <div class="endpoint-card">
         <div class="endpoint-header">
           <span class="method method-get">GET</span>
           <span class="path"><a href="/openapi.json">/openapi.json</a></span>
         </div>
-        <div class="description">Standard OpenAPI 3.1.0 schema specification for ChatGPT Custom GPT Actions, Claude, and API clients.</div>
+        <div class="description">OpenAPI 3.1.0 schema specification for ChatGPT Custom GPT Actions, Claude, and REST clients.</div>
       </div>
 
       <div class="endpoint-card">
@@ -203,7 +375,7 @@
           <span class="method method-get">GET</span>
           <span class="path"><a href="/health">/health</a></span>
         </div>
-        <div class="description">Liveness health check confirming knowledge engine readiness.</div>
+        <div class="description">Liveness probe verifying knowledge gateway availability.</div>
       </div>
 
       <div class="endpoint-card">
@@ -211,7 +383,7 @@
           <span class="method method-get">GET</span>
           <span class="path"><a href="/api/v1/knowledge/tracks">/api/v1/knowledge/tracks</a></span>
         </div>
-        <div class="description">Lists all 10 MikroTik Certification Track engineering blueprints (MTCNA, MTCRE, MTCSE, MTCSWE, etc.).</div>
+        <div class="description">Lists all 10 MikroTik Certification Track blueprints (MTCNA, MTCRE, MTCSE, MTCSWE, etc.).</div>
       </div>
 
       <div class="endpoint-card">
@@ -227,7 +399,7 @@
           <span class="method method-get">GET</span>
           <span class="path"><a href="/api/v1/knowledge/prompt">/api/v1/knowledge/prompt</a></span>
         </div>
-        <div class="description">Exports Senior Network Engineer system prompt instructions for RouterOS v7 LLM tuning.</div>
+        <div class="description">Exports Senior Network Engineer system prompt directives for LLM pair programming.</div>
       </div>
 
       <div class="endpoint-card">
@@ -247,18 +419,25 @@
       </div>
     </div>
 
-    <h2>ChatGPT Custom GPT Setup</h2>
-    <p class="description">To connect this knowledge engine to ChatGPT:</p>
-    <pre>1. In ChatGPT GPT Editor, go to "Configure" &gt; "Actions" &gt; "Create new action".
-2. Set Authentication to "None".
-3. Under "Schema", select "Import from URL" and enter:
-   https://&lt;your-deployment-url&gt;.vercel.app/openapi.json
-4. Save and publish your Custom GPT.</pre>
-
     <footer>
       <div>Part of <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener">MikroTik-Skill</a> Toolkit</div>
       <div>GPL-3.0-or-later License</div>
     </footer>
   </div>
+
+  <script>
+    function copyCode(btn) {
+      const pre = btn.parentElement.querySelector('pre');
+      navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        btn.style.color = 'var(--green)';
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.style.color = '';
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>

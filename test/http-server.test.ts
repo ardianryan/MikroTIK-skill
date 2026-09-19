@@ -13,13 +13,30 @@ describe('MikroTikHttpServer (Pure Knowledge Engine)', () => {
     httpServer.close();
   });
 
-  test('GET / returns metadata and tracks link', async () => {
+  test('GET / returns metadata with mcp endpoints and tracks link', async () => {
     const res = await fetch(`${baseUrl}/`);
     assert.equal(res.status, 200);
-    const data = (await res.json()) as { name: string; version: string; mode: string };
+    const data = (await res.json()) as { name: string; version: string; mode: string; mcp?: { sse: string; streamableHttp: string } };
     assert.equal(data.name, 'mikrotik-skill');
     assert.equal(data.version, '1.1.0');
     assert.equal(data.mode, 'knowledge-and-intelligence');
+    assert.ok(data.mcp?.sse.includes('/sse'));
+    assert.ok(data.mcp?.streamableHttp.includes('/mcp'));
+  });
+
+  test('GET /sse establishes native MCP SSE transport and emits endpoint event', async () => {
+    const controller = new AbortController();
+    const res = await fetch(`${baseUrl}/sse`, { signal: controller.signal });
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('content-type')?.includes('text/event-stream'), true);
+    
+    const reader = res.body?.getReader();
+    assert.ok(reader);
+    const { value } = await reader.read();
+    const text = new TextDecoder().decode(value);
+    assert.ok(text.includes('event: endpoint'));
+    assert.ok(text.includes('/api/messages?sessionId='));
+    controller.abort();
   });
 
   test('GET /api returns metadata catalog directly', async () => {
