@@ -27,11 +27,15 @@ MikroTik officially provides native, unauthenticated endpoints tailored for LLMs
 | **Direct Markdown (`.md`)** | `https://manual.mikrotik.com/docs/<path>.md` | Raw Markdown source of any documentation article | Fetch targeted `.md` files on demand |
 | **Sitemap XML** | `https://manual.mikrotik.com/sitemap.xml` | Standard sitemap for crawlers | URL discovery and freshness checks |
 
-### Retrieval Pattern for AI Agents
-When encountering an undocumented RouterOS v7 property or obscure flag:
+### Retrieval Pattern for AI Agents (Fallback Protocol / Opsi Terakhir)
+> [!IMPORTANT]
+> **Priority Directive:** Always prioritize local skill runbooks and embedded specifications in `SKILL.md`. Fetching from live `manual.mikrotik.com` endpoints is **strictly an option of last resort (opsi terakhir)** when encountering an unlisted hardware ASIC chip capability, emerging RouterOS v7 minor release feature, or property missing from the skill.
+
+When fallback retrieval is required:
 1. Fetch `https://manual.mikrotik.com/llms.txt` to identify the precise sub-path.
 2. Request the specific page in Markdown by appending `.md` (e.g. `https://manual.mikrotik.com/docs/developer-guides/rest-api.md`).
 3. Trust the `.md` documentation source over pre-trained heuristics.
+4. Integrate the verified configuration and propose updating the local skill documentation.
 
 ---
 

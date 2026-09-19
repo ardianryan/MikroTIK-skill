@@ -12,6 +12,9 @@ This repository is a production-grade networking automation toolkit for MikroTik
    - Always clarify user intent using open questions or the interactive `ask_question` dialog box.
    - Always present a diagnostic assessment or audit report with numbered findings (`[F-01]`, `[F-02]`, etc.) before suggesting mutations.
    - Require explicit user selection of which findings to remediate, preview changes with `--dry-run` visual diff, and apply mutations only under an armed 30-second safe-mode watchdog.
+6. **Knowledge Retrieval Hierarchy (Local First, Live LLM Docs as Last Resort):**
+   - **Tier 1 (Default & Primary):** Always utilize local knowledge, runbooks, and architectures embedded in `.agents/skills/mikrotik/SKILL.md` and `references/`. Never make unnecessary web requests if the solution is already documented locally.
+   - **Tier 2 (Fallback / Last Resort):** Querying official live web documentation (`https://manual.mikrotik.com/llms.txt`, `https://manual.mikrotik.com/docs/<path>.md`, or `/docs/cli-reference/`) is strictly a fallback mechanism when encountering unlisted hardware chip capabilities, emerging RouterOS v7 minor release syntax, or parameters missing from the local skill.
 
 <!-- antislop:start -->
 ## antislop

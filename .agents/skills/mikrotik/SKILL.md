@@ -48,6 +48,9 @@ All AI agents interacting with or generating configurations for MikroTik devices
 6. **Zero-Leakage Privacy Policy:**
    - Never output real MAC addresses, hardware serial numbers, software IDs, passwords, shared secrets, WireGuard private keys, ZeroTier network IDs, or Cloudflare tunnel tokens.
    - Always invoke `mikrotik_export_sanitized_config` or `mtik backup --sanitize` before sharing router output.
+7. **Reference Hierarchy (Local Skill First, Web Docs as Last Resort):**
+   - **Tier 1 (Utama / Primary Knowledge):** Always consult and utilize the instructions, runbooks, and architectures embedded in this skill (`SKILL.md` and `references/*.md`). Do not waste context or network bandwidth performing web scrapes if the topic is already covered locally.
+   - **Tier 2 (Fallback / Opsi Terakhir):** Querying official live web documentation (`https://manual.mikrotik.com/llms.txt`, `https://manual.mikrotik.com/docs/<path>.md`, or `/docs/cli-reference/`) is strictly reserved as a fallback/last-resort mechanism when encountering unlisted hardware switch chip capabilities, emerging RouterOS v7 minor release features, or properties missing from the local skill.
 
 ---
 
@@ -493,9 +496,23 @@ In RouterOS v7.12+, malware and ad domains are blocked natively without bloated 
 /ip dns set cache-size=8192KiB
 ```
 
-### 11.5. Live AI Documentation Retrieval Architecture
-When validating obscure properties or emerging v7 minor release features:
-- **Index Discovery:** Query `https://manual.mikrotik.com/llms.txt` for exact article paths.
-- **Direct Markdown Ingestion:** Append `.md` to documentation paths (e.g. `https://manual.mikrotik.com/docs/developer-guides/rest-api.md`).
-- **Kernel Reference:** Check `https://manual.mikrotik.com/docs/cli-reference/` for machine-extracted parameter types and factory defaults.
+### 11.5. Reference Retrieval Hierarchy (Local First, Live LLMs as Fallback)
+
+All AI agents must strictly observe the two-tier knowledge hierarchy:
+
+1. **Tier 1 — Embedded Local Skill (Default & Primary Priority):**
+   - Always rely first on the substantive guidelines, architecture rules, and operational runbooks already embedded in `SKILL.md` and `references/*.md` (PCC, Cake QoS, 802.1X, WireGuard, Docker Containers, REST API, Hardening, Mangle Order).
+   - Never initiate unnecessary web queries or scraping if the task, syntax, or configuration is already solved in the local skill.
+
+2. **Tier 2 — Live Official Manual Fallback (Strictly as Last Resort):**
+   - Reserved **ONLY** as a fallback when encountering:
+     - Unlisted hardware switch chip capabilities (e.g. newly released CRS/CCR series switch ASIC differences).
+     - Emerging RouterOS v7 minor release features/syntax not yet documented in the local skill.
+     - Ambiguous kernel property defaults missing from the local references.
+   - When fallback is required, use MikroTik's native machine-readable endpoints:
+     - **TOC Discovery:** Query `https://manual.mikrotik.com/llms.txt` (or `/llms-full.txt`) to locate exact documentation paths.
+     - **Raw Markdown Ingestion:** Append `.md` to documentation paths (e.g. `https://manual.mikrotik.com/docs/developer-guides/rest-api.md`) to ingest unformatted Markdown source directly.
+     - **Kernel CLI Reference:** Inspect `https://manual.mikrotik.com/docs/cli-reference/` for machine-extracted parameter types, valid ranges, and factory defaults.
+   - Once retrieved, provide the solution to the user and consider proposing an update to the local skill so future invocations stay local.
+
 
