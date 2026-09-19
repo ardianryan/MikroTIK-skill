@@ -1,0 +1,113 @@
+# MikroTik Skill — Full LLM Knowledge & Architecture Dossier
+Version: 1.1.0
+Author: Ardian Ryan <me@ardianryan.com>
+License: GPL-3.0-or-later
+Repository: https://github.com/ardianryan/MikroTik-Skill
+Gateway: https://mikrotik-skill.vercel.app/
+
+---
+
+## 1. System Philosophy & Engineering Directives
+1. **Vendor-Neutral Terminology:** Always refer to ISP1, ISP2, WAN1, WAN2, Primary ISP, or Secondary ISP. Commercial brand names are prohibited.
+2. **RouterOS v7 Strict Syntax:** Use `/ip firewall connection-tracking` (not `/ip firewall connection tracking`), `/routing table` with `fib=yes`, and `/ip firewall nat add chain=srcnat action=masquerade`.
+3. **Mangle Hierarchy Integrity:**
+   - Index 0: Bypass rules (`connection-nat-state=dstnat`, `LOCAL_BYPASS`).
+   - Index 1: Dedicated Client Overrides (force specific IPs/subnets to designated tables).
+   - Index 2: Multi-WAN PCC Load Balancing (`per-connection-classifier=both-addresses-and-ports:2/0` and `2/1`).
+4. **Credential Isolation:** Never share raw passwords, MAC addresses (`XX:XX:XX...`), or VPN preshared keys. Redact using the offline sanitizer.
+
+---
+
+## 2. Supported Certification Tracks & Templates
+
+### MTCRE: Dual-WAN PCC & Recursive Failover
+```routeros
+/routing table add name=to_ISP1 fib
+/routing table add name=to_ISP2 fib
+
+/ip firewall address-list add address=192.168.0.0/16 list=LOCAL_BYPASS
+/ip firewall address-list add address=10.0.0.0/8 list=LOCAL_BYPASS
+/ip firewall address-list add address=172.16.0.0/12 list=LOCAL_BYPASS
+
+/ip firewall mangle
+add chain=prerouting action=accept connection-nat-state=dstnat comment="Bypass DSTNAT"
+add chain=prerouting action=accept dst-address-list=LOCAL_BYPASS comment="Bypass RFC1918 Inter-VLAN"
+
+add chain=prerouting in-interface=WAN1 connection-state=new action=mark-connection new-connection-mark=WAN1_conn passthrough=yes
+add chain=prerouting in-interface=WAN2 connection-state=new action=mark-connection new-connection-mark=WAN2_conn passthrough=yes
+
+add chain=prerouting in-interface=bridge-lan connection-mark=no-mark dst-address-type=!local per-connection-classifier=both-addresses-and-ports:2/0 action=mark-connection new-connection-mark=WAN1_conn passthrough=yes
+add chain=prerouting in-interface=bridge-lan connection-mark=no-mark dst-address-type=!local per-connection-classifier=both-addresses-and-ports:2/1 action=mark-connection new-connection-mark=WAN2_conn passthrough=yes
+
+add chain=prerouting in-interface=bridge-lan connection-mark=WAN1_conn action=mark-routing new-routing-mark=to_ISP1 passthrough=no
+add chain=prerouting in-interface=bridge-lan connection-mark=WAN2_conn action=mark-routing new-routing-mark=to_ISP2 passthrough=no
+
+/ip route
+add dst-address=0.0.0.0/0 gateway=1.1.1.1 scope=10 target-scope=10 check-gateway=ping comment="ISP1-Host1"
+add dst-address=1.1.1.1 gateway=192.168.1.1 scope=10 target-scope=10 comment="Recursive-ISP1"
+add dst-address=0.0.0.0/0 gateway=8.8.8.8 scope=10 target-scope=10 check-gateway=ping distance=2 comment="ISP2-Host1"
+add dst-address=8.8.8.8 gateway=192.168.2.1 scope=10 target-scope=10 comment="Recursive-ISP2"
+
+add dst-address=0.0.0.0/0 gateway=1.1.1.1 routing-table=to_ISP1
+add dst-address=0.0.0.0/0 gateway=8.8.8.8 routing-table=to_ISP2
+```
+
+### MTCSE: Enterprise Firewall Hardening
+```routeros
+/ip firewall filter
+add chain=input action=accept connection-state=established,related,untracked comment="Accept Established/Related"
+add chain=input action=drop connection-state=invalid comment="Drop Invalid"
+add chain=input action=accept protocol=icmp comment="Accept ICMP"
+add chain=input action=accept src-address-type=local in-interface=bridge-lan comment="Accept LAN Management"
+add chain=input action=drop comment="Drop All Other Input"
+
+add chain=forward action=fasttrack-connection connection-state=established,related hw-offload=yes comment="FastTrack"
+add chain=forward action=accept connection-state=established,related,untracked comment="Accept Established/Related"
+add chain=forward action=drop connection-state=invalid comment="Drop Invalid"
+add chain=forward action=drop connection-nat-state=!dstnat in-interface-list=WAN comment="Drop Unsolicited WAN Incoming"
+```
+
+### MTCUME: WPA2/WPA3 Enterprise 802.1X RADIUS & User Manager v7
+```routeros
+/user-manager
+set enabled=yes certificate-authority=auto
+
+/user-manager router
+add address=127.0.0.1 name=local-router shared-secret="RADIUS_SHARED_SECRET"
+
+/radius
+add address=127.0.0.1 secret="RADIUS_SHARED_SECRET" service=wireless,login,dhcp
+
+/interface wifi datapath
+add name=eap-datapath bridge=bridge-lan vlan-id=10
+
+/interface wifi security
+add name=sec-wpa3-enterprise authentication-types=wpa2-eap,wpa3-eap eap-methods=peap,eap-mschapv2 tls-mode=no-certificates
+```
+
+### MTCTCE: CAKE Smart Queue Management (SQM) QoS
+```routeros
+/queue type
+add name=cake-download kind=cake cake-flowmode=triple-isolate cake-memlimit=32M cake-diffserv=diffserv4 cake-overhead=44
+add name=cake-upload kind=cake cake-flowmode=triple-isolate cake-memlimit=32M cake-diffserv=diffserv4 cake-overhead=44 cake-ack-filter=filter
+
+/queue simple
+add name=cake-wan-shaper target=bridge-lan max-limit=95M/95M queue=cake-upload/cake-download comment="Bufferbloat A+ Shaper"
+```
+
+### MTCSWE: Bridge VLAN Filtering
+```routeros
+/interface bridge add name=bridge-vlan vlan-filtering=yes frame-types=admit-only-vlan-tagged pvid=1
+/interface bridge vlan add bridge=bridge-vlan vlan-ids=10 tagged=bridge-vlan,ether1 untagged=ether2
+/interface bridge vlan add bridge=bridge-vlan vlan-ids=20 tagged=bridge-vlan,ether1 untagged=ether3
+/interface bridge port add bridge=bridge-vlan interface=ether2 pvid=10 frame-types=admit-only-untagged-and-priority-tagged
+/interface bridge port add bridge=bridge-vlan interface=ether3 pvid=20 frame-types=admit-only-untagged-and-priority-tagged
+```
+
+---
+
+## 3. Remote MCP & OpenAPI Specifications
+- **Remote MCP SSE:** `GET https://mikrotik-skill.vercel.app/sse`
+- **Streamable HTTP MCP:** `POST https://mikrotik-skill.vercel.app/mcp`
+- **OpenAPI 3.1.0:** `GET https://mikrotik-skill.vercel.app/openapi.json`
+- **Zero Credentials Policy:** All remote queries operate strictly offline without accessing private router interfaces.

@@ -4,7 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; font-src 'self' data:; img-src 'self' data: https:;">
-  <title>MikroTik Skill &mdash; Remote MCP &amp; OpenAPI Knowledge Gateway</title>
+  
+  <!-- Primary Meta Tags -->
+  <title>MikroTik Skill &mdash; Remote MCP &amp; Certified RouterOS v7 Knowledge Gateway for ChatGPT, Claude &amp; Gemini</title>
+  <meta name="title" content="MikroTik Skill — Remote MCP & Certified RouterOS v7 Knowledge Gateway for ChatGPT, Claude & Gemini">
+  <meta name="description" content="Production-grade MikroTik RouterOS v7 automation skill, Remote Model Context Protocol (MCP) server, and OpenAPI 3.1.0 gateway for ChatGPT Web, Claude Projects, Gemini Gems, Cursor, and Windsurf. Air-gapped and zero router credentials required.">
+  <meta name="keywords" content="MikroTik, RouterOS v7, MCP Server, Model Context Protocol, Remote MCP, ChatGPT Actions, Claude Projects, Gemini Gems, Cursor MCP, Windsurf MCP, MTCRE, MTCSE, MTCSWE, MTCUME, CAKE QoS, WireGuard, 802.1X RADIUS, User Manager v7">
+  <meta name="author" content="Ardian Ryan">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <link rel="canonical" href="https://mikrotik-skill.vercel.app/">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mikrotik-skill.vercel.app/">
+  <meta property="og:title" content="MikroTik Skill — Remote MCP & RouterOS v7 Knowledge Gateway">
+  <meta property="og:description" content="Universal air-gapped RouterOS v7 intelligence, 10 certification track configuration templates, and Remote MCP server for web AI chats and code editors.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/ardianryan/MikroTik-Skill/main/assets/mikrotik_repo_banner_1789787040310.jpg">
+  <meta property="og:site_name" content="MikroTik Skill Knowledge Gateway">
+
+  <!-- Twitter / X -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://mikrotik-skill.vercel.app/">
+  <meta property="twitter:title" content="MikroTik Skill — Remote MCP & RouterOS v7 Knowledge Gateway">
+  <meta property="twitter:description" content="Universal air-gapped RouterOS v7 intelligence, 10 certification track configuration templates, and Remote MCP server for web AI chats and code editors.">
+  <meta property="twitter:image" content="https://raw.githubusercontent.com/ardianryan/MikroTik-Skill/main/assets/mikrotik_repo_banner_1789787040310.jpg">
+
+  <!-- JSON-LD Structured Data (Schema.org) for Google & Answer Engines (AEO/GEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "MikroTik Skill Knowledge & Remote MCP Gateway",
+        "url": "https://mikrotik-skill.vercel.app/",
+        "applicationCategory": "NetworkingSoftware, DeveloperApplication",
+        "operatingSystem": "RouterOS v7, Linux, macOS, Windows",
+        "description": "Enterprise network automation skill and Remote Model Context Protocol server for MikroTik RouterOS v7. Supports ChatGPT Custom GPT Actions, Claude Projects, Gemini Gems, and AI IDEs.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Ardian Ryan",
+          "url": "https://ardianryan.com"
+        },
+        "codeRepository": "https://github.com/ardianryan/MikroTik-Skill",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html"
+      },
+      {
+        "@type": "WebAPI",
+        "name": "MikroTik RouterOS v7 OpenAPI Knowledge Gateway",
+        "url": "https://mikrotik-skill.vercel.app/openapi.json",
+        "description": "OpenAPI 3.1.0 certified specification providing RouterOS v7 templates, prompt directives, FIB verification, and configuration sanitization without requiring router credentials.",
+        "documentation": "https://github.com/ardianryan/MikroTik-Skill#readme"
+      }
+    ]
+  }
+  </script>
+
   <style>
     :root {
       --bg: #090c10;
@@ -38,12 +99,12 @@
       color: var(--text);
       font-family: var(--font-sans);
       line-height: 1.6;
-      padding: 3rem 1.5rem;
+      padding: 2.5rem 1.5rem;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
     .container {
-      max-width: 1080px;
+      max-width: 1120px;
       margin: 0 auto;
     }
     header {
@@ -59,29 +120,25 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.65rem;
       text-decoration: none;
     }
-    .brand-mark {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      color: #fff;
-      font-size: 0.85rem;
-      font-family: var(--font-mono);
-      letter-spacing: -0.05em;
+    .brand-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
     }
     .brand-text {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--text-heading);
       letter-spacing: -0.02em;
@@ -95,6 +152,25 @@
       border-radius: 4px;
       font-family: var(--font-mono);
       font-weight: 600;
+    }
+    .repo-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      transition: all 160ms ease;
+    }
+    .repo-link:hover {
+      color: var(--text-heading);
+      border-color: var(--accent);
+      transform: translateY(-1px);
     }
     .header-badges {
       display: flex;
@@ -126,8 +202,8 @@
       background-color: var(--success);
     }
     .hero-title {
-      font-size: 2.15rem;
-      font-weight: 700;
+      font-size: 2.25rem;
+      font-weight: 800;
       color: var(--text-heading);
       letter-spacing: -0.03em;
       line-height: 1.25;
@@ -136,7 +212,7 @@
     .hero-subtitle {
       font-size: 1.05rem;
       color: var(--text-muted);
-      max-width: 820px;
+      max-width: 860px;
       line-height: 1.6;
     }
     .security-notice {
@@ -159,7 +235,7 @@
       margin-bottom: 1.25rem;
     }
     .section-title {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: var(--text-heading);
       letter-spacing: -0.02em;
@@ -170,13 +246,28 @@
       margin-top: 0.25rem;
     }
 
+    /* Category Group Labels */
+    .tab-category-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      align-items: center;
+    }
+    .tab-category-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
     /* Interactive Connect Tabs */
     .connect-card {
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
     }
     .tab-bar {
       display: flex;
@@ -193,13 +284,13 @@
       border: none;
       color: var(--text-muted);
       font-family: var(--font-sans);
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 600;
-      padding: 0.85rem 1.25rem;
+      padding: 0.85rem 1.15rem;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.45rem;
       border-bottom: 2px solid transparent;
       white-space: nowrap;
       transition: all var(--ease-smooth) 160ms;
@@ -212,6 +303,24 @@
       color: var(--accent);
       border-bottom-color: var(--accent);
       background: var(--bg-surface);
+    }
+    .tab-btn-badge {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-web {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    .badge-ide {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
     .tab-body {
       padding: 1.5rem;
@@ -226,10 +335,10 @@
     }
     .config-file-label {
       font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--text-dim);
+      font-size: 0.82rem;
+      color: var(--text-heading);
       background: var(--bg-code);
-      padding: 0.2rem 0.5rem;
+      padding: 0.25rem 0.6rem;
       border-radius: 4px;
       border: 1px solid var(--border-subtle);
     }
@@ -240,7 +349,7 @@
       font-family: var(--font-sans);
       font-size: 0.78rem;
       font-weight: 600;
-      padding: 0.4rem 0.85rem;
+      padding: 0.45rem 0.95rem;
       border-radius: 6px;
       cursor: pointer;
       display: flex;
@@ -267,15 +376,19 @@
       padding: 1.25rem;
       overflow-x: auto;
       font-family: var(--font-mono);
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       color: #e2e8f0;
       line-height: 1.55;
       tab-size: 2;
     }
     .tab-instruction {
-      margin-top: 0.85rem;
-      font-size: 0.85rem;
+      margin-top: 0.95rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .tab-instruction strong {
+      color: var(--text-heading);
     }
 
     /* Grid of Tools */
@@ -349,7 +462,7 @@
       color: var(--accent);
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
-    .tag-post {
+    .tag-txt {
       background: rgba(16, 185, 129, 0.15);
       color: var(--success);
       border: 1px solid rgba(16, 185, 129, 0.3);
@@ -372,32 +485,40 @@
 
     footer {
       margin-top: 4rem;
-      padding-top: 1.5rem;
+      padding-top: 1.75rem;
       border-top: 1px solid var(--border-subtle);
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       color: var(--text-dim);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 1.25rem;
+      align-items: center;
     }
-    footer a {
+    .footer-links {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
       color: var(--text-muted);
       text-decoration: none;
+      transition: color 160ms ease;
     }
-    footer a:hover {
-      color: var(--text-heading);
+    .footer-links a:hover {
+      color: var(--accent);
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
       body {
         padding: 1.5rem 1rem;
       }
       .hero-title {
-        font-size: 1.65rem;
+        font-size: 1.75rem;
       }
       .tab-btn {
-        padding: 0.75rem 0.9rem;
+        padding: 0.75rem 0.95rem;
         font-size: 0.8rem;
       }
       .endpoint-row {
@@ -411,11 +532,18 @@
   <div class="container">
     <header>
       <div class="nav-bar">
-        <a href="/" class="brand">
-          <div class="brand-mark">M</div>
-          <span class="brand-text">MikroTik-Skill</span>
-          <span class="brand-version">v1.1.0</span>
-        </a>
+        <div class="brand-cluster">
+          <a href="/" class="brand">
+            <img src="/favicon.ico" alt="MikroTik" class="brand-icon" width="22" height="22">
+            <span class="brand-text">MikroTik-Skill</span>
+            <span class="brand-version">v1.1.0</span>
+          </a>
+          <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener noreferrer" class="repo-link">
+            <span>GitHub Repo</span>
+            <span style="opacity: 0.6;">&nearr;</span>
+          </a>
+        </div>
+
         <div class="header-badges">
           <span class="badge badge-status" id="healthBadge">
             <span class="status-dot"></span>
@@ -426,36 +554,62 @@
         </div>
       </div>
 
-      <h1 class="hero-title">Universal Remote MCP &amp; Certified Knowledge Gateway</h1>
-      <p class="hero-subtitle">Production-grade Model Context Protocol (MCP) server and air-gapped RouterOS v7 intelligence for AI coding agents, IDEs, and chatbots without requiring physical router credentials.</p>
+      <h1 class="hero-title">Universal Remote MCP &amp; Certified RouterOS v7 Gateway</h1>
+      <p class="hero-subtitle">Production-grade network automation, 10 certification track runbooks, and zero-credential Model Context Protocol (MCP) server for ChatGPT Web, Claude Projects, Gemini Gems, Cursor, and Windsurf.</p>
 
       <div class="security-notice">
         <strong>Zero Router Credentials Required:</strong>
-        <span>This remote deployment functions purely as an offline reference, validation, and script generation engine. No IP addresses, router passwords, or API ports are exposed or stored.</span>
+        <span>This remote gateway operates purely as an air-gapped reference, schema validation, and script generation engine. No router IP addresses, passwords, or management ports are exposed or stored.</span>
       </div>
     </header>
 
     <main>
       <div class="section-header">
         <h2 class="section-title">1-Click AI Assistant &amp; IDE Setup</h2>
-        <p class="section-desc">Select your environment to copy the exact configuration block.</p>
+        <p class="section-desc">Select your AI platform below to copy the ready-to-use configuration or schema link.</p>
       </div>
 
       <div class="connect-card">
         <div class="tab-bar" role="tablist">
-          <button class="tab-btn active" onclick="selectTab('cursor')" id="btn-cursor" role="tab">Cursor IDE</button>
-          <button class="tab-btn" onclick="selectTab('windsurf')" id="btn-windsurf" role="tab">Windsurf IDE</button>
-          <button class="tab-btn" onclick="selectTab('claude-desktop')" id="btn-claude-desktop" role="tab">Claude Desktop</button>
-          <button class="tab-btn" onclick="selectTab('vscode')" id="btn-vscode" role="tab">VS Code (Cline / Roo)</button>
-          <button class="tab-btn" onclick="selectTab('claude-code')" id="btn-claude-code" role="tab">Claude Code CLI</button>
-          <button class="tab-btn" onclick="selectTab('chatgpt')" id="btn-chatgpt" role="tab">ChatGPT Custom GPT</button>
+          <button class="tab-btn active" onclick="selectTab('chatgpt')" id="btn-chatgpt" role="tab">
+            <span>ChatGPT Web</span>
+            <span class="tab-btn-badge badge-web">Web AI</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('claude-web')" id="btn-claude-web" role="tab">
+            <span>Claude Web</span>
+            <span class="tab-btn-badge badge-web">Web AI</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('gemini-web')" id="btn-gemini-web" role="tab">
+            <span>Gemini Web</span>
+            <span class="tab-btn-badge badge-web">Web AI</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('cursor')" id="btn-cursor" role="tab">
+            <span>Cursor IDE</span>
+            <span class="tab-btn-badge badge-ide">IDE MCP</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('windsurf')" id="btn-windsurf" role="tab">
+            <span>Windsurf IDE</span>
+            <span class="tab-btn-badge badge-ide">IDE MCP</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('claude-desktop')" id="btn-claude-desktop" role="tab">
+            <span>Claude Desktop</span>
+            <span class="tab-btn-badge badge-ide">IDE MCP</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('vscode')" id="btn-vscode" role="tab">
+            <span>VS Code (Cline)</span>
+            <span class="tab-btn-badge badge-ide">IDE MCP</span>
+          </button>
+          <button class="tab-btn" onclick="selectTab('claude-code')" id="btn-claude-code" role="tab">
+            <span>Claude Code CLI</span>
+            <span class="tab-btn-badge badge-ide">Terminal</span>
+          </button>
         </div>
 
         <div class="tab-body">
           <div class="tab-meta">
-            <span class="config-file-label" id="tabTargetFile">.cursor/mcp.json</span>
+            <span class="config-file-label" id="tabTargetFile">OpenAPI Schema URL</span>
             <button class="copy-action-btn" onclick="copySnippet()" id="copySnippetBtn">
-              Copy Configuration
+              Copy to Clipboard
             </button>
           </div>
           <div class="code-container">
@@ -467,7 +621,7 @@
 
       <div class="section-header">
         <h2 class="section-title">Remote Capabilities &amp; Knowledge Tools</h2>
-        <p class="section-desc">Available natively to any connected AI agent via MCP protocol.</p>
+        <p class="section-desc">Available directly to connected AI agents and web chat models.</p>
       </div>
 
       <div class="tools-grid">
@@ -477,37 +631,51 @@
         </div>
         <div class="tool-item">
           <div class="tool-title">mikrotik_get_chat_prompt</div>
-          <div class="tool-desc">Returns the certified Senior Network Engineer prompt guidelines ensuring AI assistants produce copy-pasteable script blocks and strictly avoid deprecated RouterOS v6 syntax.</div>
+          <div class="tool-desc">Returns certified Senior Network Engineer system prompt instructions ensuring AI models generate 1-click copy-pasteable scripts and avoid deprecated RouterOS v6 syntax.</div>
         </div>
         <div class="tool-item">
           <div class="tool-title">mikrotik_sanitize_config</div>
-          <div class="tool-desc">Deterministic redactor that strips MAC addresses, serial numbers, passwords, pre-shared keys, and VPN identifiers before sharing configs with LLMs or public forums.</div>
+          <div class="tool-desc">Deterministic redactor that scrubs MAC addresses, serial numbers, passwords, pre-shared keys, and VPN identifiers before sharing configs with public AI engines.</div>
         </div>
         <div class="tool-item">
           <div class="tool-title">mikrotik_validate_routing_mark</div>
-          <div class="tool-desc">Validates custom routing table registration and kernel FIB integrity (`fib=yes`) before firewall mangle rule injection.</div>
+          <div class="tool-desc">Verifies custom routing table declarations and kernel FIB integrity (`fib=yes`) before firewall mangle rule injection.</div>
         </div>
       </div>
 
       <div class="section-header">
-        <h2 class="section-title">HTTP &amp; OpenAPI Directory</h2>
-        <p class="section-desc">Direct endpoints available for automated curl probes, OpenAPI agents, and CI jobs.</p>
+        <h2 class="section-title">Machine-Readable AI Endpoints &amp; SEO</h2>
+        <p class="section-desc">Indexed endpoints for search engines, LLM agents (llms.txt), and OpenAPI tools.</p>
       </div>
 
       <div class="endpoint-list">
         <div class="endpoint-row">
           <div class="endpoint-left">
+            <span class="method-tag tag-txt">LLMS</span>
+            <a href="/llms.txt" class="endpoint-path">/llms.txt</a>
+          </div>
+          <div class="endpoint-desc">Official llms.txt summary for LLM search engines (Perplexity, ChatGPT Search, Gemini).</div>
+        </div>
+        <div class="endpoint-row">
+          <div class="endpoint-left">
+            <span class="method-tag tag-txt">LLMS-FULL</span>
+            <a href="/llms-full.txt" class="endpoint-path">/llms-full.txt</a>
+          </div>
+          <div class="endpoint-desc">Complete RouterOS v7 technical dossier and 10-track certified templates for deep AI reasoning.</div>
+        </div>
+        <div class="endpoint-row">
+          <div class="endpoint-left">
             <span class="method-tag tag-sse">SSE</span>
             <a href="/sse" class="endpoint-path">/sse</a>
           </div>
-          <div class="endpoint-desc">Native Model Context Protocol Server-Sent Events stream for AI clients.</div>
+          <div class="endpoint-desc">Native Model Context Protocol Server-Sent Events stream for Cursor, Windsurf, and Claude.</div>
         </div>
         <div class="endpoint-row">
           <div class="endpoint-left">
             <span class="method-tag tag-get">GET</span>
             <a href="/openapi.json" class="endpoint-path">/openapi.json</a>
           </div>
-          <div class="endpoint-desc">OpenAPI 3.1.0 schema specification for Custom GPT Actions &amp; API tooling.</div>
+          <div class="endpoint-desc">Standard OpenAPI 3.1.0 schema specification for Custom GPT Actions &amp; API tooling.</div>
         </div>
         <div class="endpoint-row">
           <div class="endpoint-left">
@@ -518,18 +686,23 @@
         </div>
         <div class="endpoint-row">
           <div class="endpoint-left">
-            <span class="method-tag tag-get">GET</span>
-            <a href="/health" class="endpoint-path">/health</a>
+            <span class="method-tag tag-txt">XML</span>
+            <a href="/sitemap.xml" class="endpoint-path">/sitemap.xml</a>
           </div>
-          <div class="endpoint-desc">Service health and availability probe.</div>
+          <div class="endpoint-desc">Standard XML Sitemap for Google, Bing, and web indexers.</div>
         </div>
       </div>
     </main>
 
     <footer>
-      <div>MikroTik-Skill &mdash; Production RouterOS v7 Automation &amp; AI Intelligence</div>
       <div>
-        <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener noreferrer">GitHub Repository</a> &bull;
+        <strong>MikroTik-Skill</strong> &mdash; Production RouterOS v7 Automation &amp; AI Intelligence
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="/llms.txt" target="_blank">llms.txt</a>
+        <a href="/openapi.json" target="_blank">OpenAPI 3.1.0</a>
+        <a href="/sitemap.xml" target="_blank">Sitemap</a>
         <span>GPL-3.0-or-later</span>
       </div>
     </footer>
@@ -537,6 +710,32 @@
 
   <script>
     const SNIPPETS = {
+      chatgpt: {
+        file: "ChatGPT Web: Custom GPT > Actions > Import from URL",
+        instruction: "In ChatGPT GPT Editor, go to 'Configure' > 'Actions' > 'Create new action'. Click 'Import from URL', paste this URL, and set Authentication to 'None'. Your GPT will immediately acquire RouterOS v7 knowledge tools.",
+        code: "https://mikrotik-skill.vercel.app/openapi.json"
+      },
+      'claude-web': {
+        file: "Claude.ai Web: Project Custom Instructions & Knowledge",
+        instruction: "In Claude.ai, open your Project > 'Set custom instructions', and paste this directive block. Claude will enforce strict RouterOS v7 vendor-neutral syntax and cite official track templates.",
+        code: `You are an expert Senior MikroTik Network Engineer certified across all 10 tracks (MTCNA, MTCRE, MTCSE, MTCSWE, MTCEWE, MTCUME, MTCIPv6E, MTCTCE).
+Enforce strict RouterOS v7 syntax:
+- Routing tables must use /routing table with fib=yes.
+- FastTrack must include hw-offload=yes.
+- Mangle hierarchy: Bypass rules (dstnat & LOCAL_BYPASS) at Index 0 -> Client Overrides -> PCC Load Balancing.
+- Always use vendor-neutral terms: ISP1, ISP2, WAN1, WAN2.
+- Reference live templates from: https://mikrotik-skill.vercel.app/llms-full.txt`
+      },
+      'gemini-web': {
+        file: "Gemini Web: Custom Gem / Google AI Studio System Instructions",
+        instruction: "In Google AI Studio or Gemini Custom Gems, paste these system instructions and wire tools via OpenAPI schema (https://mikrotik-skill.vercel.app/openapi.json) for live function calling.",
+        code: `Role: MikroTik RouterOS v7 Automation & Senior Network Engineering Expert.
+Rules:
+1. Provide 1-click copy-pasteable script blocks for RouterOS v7.
+2. Never use legacy RouterOS v6 syntax (/ip firewall connection tracking or route check-gateway on marks without fib).
+3. Validate all routing marks against /routing table.
+4. Schema & Tool Reference: https://mikrotik-skill.vercel.app/openapi.json`
+      },
       cursor: {
         file: ".cursor/mcp.json",
         instruction: "Paste into .cursor/mcp.json in your project workspace, or configure via Cursor Settings > Features > MCP > Add Server (Type: SSE).",
@@ -591,15 +790,10 @@
         file: "Terminal Command",
         instruction: "Execute this command in your terminal to register the remote MCP server directly in Claude Code.",
         code: "claude mcp add --transport sse mikrotik https://mikrotik-skill.vercel.app/sse"
-      },
-      chatgpt: {
-        file: "ChatGPT Custom GPT Editor > Actions",
-        instruction: "In Custom GPT Editor > Actions > Create new action, select 'Import from URL', paste this URL, and set Authentication to 'None'.",
-        code: "https://mikrotik-skill.vercel.app/openapi.json"
       }
     };
 
-    let currentTab = 'cursor';
+    let currentTab = 'chatgpt';
 
     function selectTab(key) {
       currentTab = key;
@@ -610,7 +804,7 @@
       const data = SNIPPETS[key];
       document.getElementById('tabTargetFile').innerText = data.file;
       document.getElementById('tabCodeBlock').innerText = data.code;
-      document.getElementById('tabInstruction').innerText = data.instruction;
+      document.getElementById('tabInstruction').innerHTML = data.instruction;
     }
 
     function copySnippet() {
@@ -650,7 +844,7 @@
     }
 
     // Initialize default tab and health probe
-    selectTab('cursor');
+    selectTab('chatgpt');
     probeHealth();
   </script>
 </body>

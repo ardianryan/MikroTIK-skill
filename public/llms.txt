@@ -1,0 +1,27 @@
+# MikroTik Skill — RouterOS v7 Knowledge & Remote MCP Gateway
+> Production-grade MikroTik RouterOS v7 network automation skill, Remote Model Context Protocol (MCP) server, and OpenAPI 3.1.0 gateway for ChatGPT, Claude, Gemini, Cursor, and Windsurf.
+
+## Overview
+MikroTik Skill provides air-gapped, zero-credential network intelligence, certified CLI configuration runbooks, and deterministic safety engines for MikroTik RouterOS v7. It operates without requiring router passwords, private IPs, or exposing sensitive network ports.
+
+## Live Endpoints
+- **Web Portal:** https://mikrotik-skill.vercel.app/
+- **Remote MCP Server (SSE):** https://mikrotik-skill.vercel.app/sse
+- **Streamable HTTP MCP:** https://mikrotik-skill.vercel.app/mcp
+- **OpenAPI 3.1.0 Schema:** https://mikrotik-skill.vercel.app/openapi.json
+- **Service Liveness Probe:** https://mikrotik-skill.vercel.app/health
+- **Certification Track Blueprints:** https://mikrotik-skill.vercel.app/api/v1/knowledge/tracks
+- **Full LLM Knowledge Dossier:** https://mikrotik-skill.vercel.app/llms-full.txt
+- **GitHub Repository:** https://github.com/ardianryan/MikroTik-Skill
+
+## Core Capabilities
+- **Certified 10-Track Runbooks:** Standardized, production-ready RouterOS v7 CLI templates covering MTCRE (Dual-WAN PCC), MTCSE (Firewall hardening), MTCUME (802.1X RADIUS & User Manager v7), MTCSWE (Bridge VLAN Filtering), MTCEWE (WiFi 6 CAPsMAN), MTCIPv6E (SLAAC / DHCPv6-PD), MTCTCE (CAKE SQM QoS), MTCNA (Base routing), WireGuard site-to-site, and AdList DNS malware filtering.
+- **FIB & Routing Mark Verification:** Validates proposed routing tables in `/routing table` with `fib=yes` before Mangle rule placement.
+- **Deterministic Mangle Order:** Enforces strict packet classification hierarchy (Bypass -> Client Overrides -> PCC Load Balancing).
+- **Config & Secret Redactor:** Deterministically redacts MAC addresses, serial numbers, passwords, preshared keys, and VPN identifiers from raw RouterOS configurations.
+- **Senior Network Engineer System Directives:** Optimized prompt instructions enforcing 1-click copy-pasteable script blocks and vendor-neutral naming (ISP1, ISP2).
+
+## Web AI Integration
+- **ChatGPT Web (Custom GPTs):** Import schema from `https://mikrotik-skill.vercel.app/openapi.json` with Authentication set to None.
+- **Claude Web (Claude.ai Projects):** Add the system directives from `/api/v1/knowledge/prompt` and cite templates from `/api/v1/knowledge/template?track=<track>`.
+- **Gemini Web (Google AI Studio / Custom Gems):** Configure system instructions and wire OpenAPI function calls to the gateway.
