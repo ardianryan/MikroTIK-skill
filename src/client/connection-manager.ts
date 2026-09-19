@@ -12,6 +12,7 @@ import type {
   NtpClient,
   DnsSettings,
   InterfaceItem,
+  BridgeItem,
   ConnectionTestResult,
   ContainerItem,
   AdlistItem,
@@ -301,6 +302,20 @@ export class ConnectionManager {
     return this.executeWithFallback(
       (c) => c.getInterfaceTraffic(interfaceName),
       (c) => c.getInterfaceTraffic(interfaceName)
+    );
+  }
+
+  async getBridges(): Promise<BridgeItem[]> {
+    return this.executeWithFallback(
+      (c) => c.getBridges(),
+      (c) => c.getBridges()
+    );
+  }
+
+  async getIpv6Filters(): Promise<FirewallFilterRule[]> {
+    return this.executeWithFallback(
+      (c) => c.getIpv6Filters(),
+      (c) => c.getIpv6Filters()
     );
   }
 

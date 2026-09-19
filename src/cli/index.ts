@@ -16,8 +16,9 @@ import { MangleOrderEngine } from '../safety/order-engine.js';
 import { SafeModeWatchdog } from '../safety/watchdog.js';
 import { ConfigSanitizer } from '../safety/sanitizer.js';
 import { formatBatchDiff, type DiffEntry } from '../safety/diff.js';
-import type { InterfaceTrafficMonitor } from '../client/types.js';
 import { McpInstaller, type IdeTarget } from '../mcp/installer.js';
+import { CertifiedTemplateGenerator } from '../safety/templates.js';
+import type { InterfaceTrafficMonitor } from '../client/types.js';
 
 const program = new Command();
 
@@ -573,6 +574,46 @@ program
     } catch (err) {
       console.error(chalk.red(`Installation failed: ${err instanceof Error ? err.message : String(err)}`));
       process.exitCode = 1;
+    }
+  });
+
+program
+  .command('template')
+  .alias('generate')
+  .description('Generate standardized RouterOS v7 configuration templates for MikroTik Certification tracks.')
+  .argument('[track]', 'Certification track: mtcswe | mtcine | mtcewe | mtcwe | mtcre | mtctce | mtcse | mtcipv6e | mtcume | mtcna')
+  .option('-o, --output <file>', 'Save generated configuration script to file (.rsc)')
+  .option('-l, --list', 'List all available certified configuration templates')
+  .action((track, opts) => {
+    if (opts.list || !track) {
+      console.log(chalk.cyan.bold('\nAvailable MikroTik Certified Engineering Templates:\n'));
+      for (const t of CertifiedTemplateGenerator.list()) {
+        console.log(`  ${chalk.bold.yellow(t.track.padEnd(10, ' '))} ${chalk.white(t.title)}`);
+        console.log(`  ${''.padEnd(10, ' ')} ${chalk.gray(t.description)}\n`);
+      }
+      console.log(chalk.gray(`Usage: mtik template <track> [-o <file.rsc>]\n`));
+      return;
+    }
+
+    const tpl = CertifiedTemplateGenerator.get(track);
+    if (!tpl) {
+      console.error(chalk.red(`Unknown certification track: '${track}'.`));
+      console.log(chalk.gray(`Run 'mtik template --list' to see available tracks.`));
+      process.exitCode = 1;
+      return;
+    }
+
+    if (opts.output) {
+      const outPath = path.resolve(process.cwd(), opts.output);
+      fs.writeFileSync(outPath, tpl.script, 'utf-8');
+      console.log(chalk.green(`\n✔ Configuration template [${tpl.track.toUpperCase()}] saved to: ${chalk.bold(outPath)}\n`));
+    } else {
+      console.log(chalk.cyan.bold(`\n# =========================================================`));
+      console.log(chalk.cyan.bold(`# ${tpl.title}`));
+      console.log(chalk.gray(`# ${tpl.description}`));
+      console.log(chalk.cyan.bold(`# =========================================================\n`));
+      console.log(tpl.script);
+      console.log('');
     }
   });
 

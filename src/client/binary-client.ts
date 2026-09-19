@@ -11,6 +11,7 @@ import type {
   NtpClient,
   DnsSettings,
   InterfaceItem,
+  BridgeItem,
   ContainerItem,
   AdlistItem,
   InterfaceTrafficMonitor,
@@ -207,5 +208,13 @@ export class RouterOsBinaryClient {
     ]);
     const row = res[0] as InterfaceTrafficMonitor | undefined;
     return row || { name: interfaceName };
+  }
+
+  async getBridges(): Promise<BridgeItem[]> {
+    return this.writeQuery<BridgeItem>('/interface/bridge/print');
+  }
+
+  async getIpv6Filters(): Promise<FirewallFilterRule[]> {
+    return this.writeQuery<FirewallFilterRule>('/ipv6/firewall/filter/print');
   }
 }

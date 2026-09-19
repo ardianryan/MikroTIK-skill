@@ -11,6 +11,7 @@ import { SecurityAuditor } from '../safety/auditor.js';
 import { MangleOrderEngine } from '../safety/order-engine.js';
 import { SafeModeWatchdog } from '../safety/watchdog.js';
 import { ConfigSanitizer } from '../safety/sanitizer.js';
+import { CertifiedTemplateGenerator } from '../safety/templates.js';
 
 const server = new Server(
   {
@@ -113,6 +114,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: 'object',
           properties: {},
+        },
+      },
+      {
+        name: 'mikrotik_generate_template',
+        description: 'Generate standardized production configuration templates across the 10 MikroTik Certification tracks (MTCNA, MTCRE, MTCINE, MTCTCE, MTCSWE, MTCSE, MTCIPv6E, MTCUME, MTCEWE, MTCWE).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            track: {
+              type: 'string',
+              enum: ['mtcswe', 'mtcine', 'mtcewe', 'mtcwe', 'mtcre', 'mtctce', 'mtcse', 'mtcipv6e', 'mtcume', 'mtcna', 'list'],
+              description: 'Target certification track (or "list" to enumerate all available templates)',
+            },
+          },
+          required: ['track'],
         },
       },
     ],
@@ -326,6 +342,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const adlists = await conn.getDnsAdlists();
         return {
           content: [{ type: 'text', text: JSON.stringify(adlists, null, 2) }],
+        };
+      }
+
+      case 'mikrotik_generate_template': {
+        const track = String(args?.track || 'list').toLowerCase();
+        if (track === 'list') {
+          return {
+            content: [{ type: 'text', text: JSON.stringify(CertifiedTemplateGenerator.list(), null, 2) }],
+          };
+        }
+        const tpl = CertifiedTemplateGenerator.get(track);
+        if (!tpl) {
+          throw new Error(`Unknown certification track: '${track}'`);
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `# ${tpl.title}\n# ${tpl.description}\n\n${tpl.script}`,
+            },
+          ],
         };
       }
 

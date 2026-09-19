@@ -2,6 +2,9 @@
 name: mikrotik
 description: "Enterprise network automation, multi-WAN load balancing, security audits, and configuration runbooks for MikroTik RouterOS v7. Use when auditing RouterOS security, setting up dual-WAN failover/PCC, configuring WPA2/WPA3 Enterprise 802.1X RADIUS, deploying CAKE QoS, creating WireGuard tunnels, running containers, or managing IDE MCP integrations."
 references:
+  - references/mtcswe-advanced-switching.md
+  - references/mtcine-mpls-vpls-vrf.md
+  - references/mtcewe-enterprise-wifi.md
   - references/hardware-switch-matrix.md
   - references/doh-security.md
   - references/ipv6-dual-stack.md
@@ -353,6 +356,11 @@ mtik lease --add --ip <IP> --mac <MAC>        # Add static DHCP lease reservatio
 mtik container [list|--restart <id>]          # List and manage Docker containers
 mtik adlist [list|--add <url>]                # Inspect or register DNS sinkhole blocklists
 
+# Certification Templates Generator (10 Tracks)
+mtik template --list                          # List all 10 certified configuration templates
+mtik template <track>                         # Print certified production configuration
+mtik template <track> -o <file.rsc>           # Save configuration script to RouterOS .rsc file
+
 # IDE MCP Setup
 mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ```
@@ -373,6 +381,9 @@ mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ## 9. Enterprise Reference Architecture Guides
 
 For detailed, step-by-step implementation templates, refer to:
+- [MTCSWE: Advanced Switching, LACP Bonding & Multicast](./references/mtcswe-advanced-switching.md)
+- [MTCINE: Enterprise Inter-Networking, MPLS, VPLS & VRF](./references/mtcine-mpls-vpls-vrf.md)
+- [MTCEWE & MTCWE: Enterprise Wireless, Wi-Fi 6 & CAPsMAN v2](./references/mtcewe-enterprise-wifi.md)
 - [Hardware Architecture & Switch Chip Sizing Matrix](./references/hardware-switch-matrix.md)
 - [DNS-over-HTTPS (DoH) & Root CA Trust Store Security](./references/doh-security.md)
 - [Enterprise IPv6 Dual-Stack & RFC 4890 Firewall](./references/ipv6-dual-stack.md)
@@ -391,20 +402,23 @@ For detailed, step-by-step implementation templates, refer to:
 
 ---
 
-## 10. MikroTik Certified Engineering Framework (Certification Alignment)
+## 10. MikroTik Certified Engineering Framework (10-Track Standard)
 
-This automation toolkit and AI agent skill are strictly standardized against official MikroTik Certified Engineering curricula:
+This automation toolkit and AI agent skill are strictly standardized against the 10 official MikroTik Certified Engineering curricula:
 
-| Certification Track | Core Engineering Domain | Standardized Tooling / Runbook |
-|---|---|---|
-| **MTCNA** (Associate) | System health, Safe Mode watchdog, sanitized backup, DHCP snooping, Bridge architecture | `mtik status`, `mtik backup --sanitize`, `SafeModeWatchdog`, [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md) |
-| **MTCRE** (Routing) | Policy-Based Routing (PBR), recursive route failover with Virtual SLA, IPv6 Dual-Stack | `mikrotik_force_routing`, recursive target-scope, [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md), [`ipv6-dual-stack.md`](./references/ipv6-dual-stack.md) |
-| **MTCTCE** (Traffic Control) | Strict Packet Flow v7 pipeline, Conntrack states, 4-tier Mangle ordering, CAKE/FQ-CoDel | `MangleOrderEngine`, [`packet-flow-v7.md`](./references/packet-flow-v7.md), [`qos-cake.md`](./references/qos-cake.md), [`hardware-switch-matrix.md`](./references/hardware-switch-matrix.md) |
-| **MTCSE** (Security) | 7-Pillar Security Audit, MAC-Server isolation, DNS-over-HTTPS (DoH) CA trust, DNS adlist sinkholing | `SecurityAuditor`, `mikrotik_audit_security`, `mikrotik_get_adlist_status`, [`doh-security.md`](./references/doh-security.md) |
-| **MTCUME** (User Management) | User Manager v7 dynamic VLAN assignment, 802.1X EAP-TLS / PEAP, Hotspot captive portal | [`radius-8021x.md`](./references/radius-8021x.md), [`hotspot-portal.md`](./references/hotspot-portal.md) |
-| **MTCWE** (Wireless) | Wi-Fi 6 / 802.11ax CAPsMAN v2 on RouterOS v7 (`/interface wifi`), fast roaming (802.11r/k/v) | [`radius-8021x.md`](./references/radius-8021x.md), `/interface wifi` |
-| **MTCINE** (Inter-Networking) | BGP v7 engine rewrite (`template`/`connection`), routing filters, VXLAN overlay, L3HW offload | [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md), [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md) |
-| **Operations & NOC** | Telemetry, incident alerting, Netwatch v7, Telegram webhooks, 5-layer troubleshooting | [`monitoring-alerting.md`](./references/monitoring-alerting.md), [`troubleshooting-protocol.md`](./references/troubleshooting-protocol.md) |
+| # | Certification Track | Core Engineering Domain | Standardized Tooling / Runbook |
+|---|---|---|---|
+| **1** | **MTCNA** (*Network Associate*) | RouterOS basics, safe mode, sanitized backup, DHCP snooping, bridge setup | `mtik status`, `mtik backup --sanitize`, `SafeModeWatchdog`, `mtik template mtcna` |
+| **2** | **MTCRE** (*Routing Engineer*) | Policy-Based Routing (PBR), recursive route failover with Virtual SLA, point-to-point addressing | `mikrotik_force_routing`, recursive target-scope, [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md), `mtik template mtcre` |
+| **3** | **MTCINE** (*Inter-Networking Engineer*) | MPLS LDP, transparent VPLS L2VPN, multi-tenant VRF, BGP v7 Communities & Route Reflectors | [`mtcine-mpls-vpls-vrf.md`](./references/mtcine-mpls-vpls-vrf.md), `mtik template mtcine` |
+| **4** | **MTCTCE** (*Traffic Control Engineer*) | Strict Packet Flow v7 pipeline, Conntrack states, 4-tier Mangle ordering, CAKE/FQ-CoDel | `MangleOrderEngine`, [`packet-flow-v7.md`](./references/packet-flow-v7.md), [`qos-cake.md`](./references/qos-cake.md), `mtik template mtctce` |
+| **5** | **MTCSWE** (*Switching Engineer*) | LACP 802.3ad bonding, IGMP/MLD multicast snooping, port isolation, L3HW offload, hardware MSTP | [`mtcswe-advanced-switching.md`](./references/mtcswe-advanced-switching.md), [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md), `mtik template mtcswe` |
+| **6** | **MTCSE** (*Security Engineer*) | 7-Pillar Security Audit, MAC-Server isolation, DNS-over-HTTPS (DoH) CA trust, DNS adlist sinkholing | `SecurityAuditor`, `mikrotik_audit_security`, `mikrotik_get_adlist_status`, [`doh-security.md`](./references/doh-security.md), `mtik template mtcse` |
+| **7** | **MTCIPv6E** (*IPv6 Engineer*) | DHCPv6-PD prefix delegation, SLAAC neighbor discovery, RFC 4890 compliant ICMPv6 firewall | [`ipv6-dual-stack.md`](./references/ipv6-dual-stack.md), `mtik template mtcipv6e` |
+| **8** | **MTCUME** (*User Management Engineer*) | User Manager v7 dynamic VLAN assignment, 802.1X EAP-TLS / PEAP, Hotspot captive portal | [`radius-8021x.md`](./references/radius-8021x.md), [`hotspot-portal.md`](./references/hotspot-portal.md), `mtik template mtcume` |
+| **9** | **MTCEWE** (*Enterprise Wireless Engineer*) | Wi-Fi 6 / 802.11ax central CAPsMAN v2 on RouterOS v7 (`/interface wifi`), 802.11r/k/v fast roaming | [`mtcewe-enterprise-wifi.md`](./references/mtcewe-enterprise-wifi.md), `mtik template mtcewe` |
+| **10** | **MTCWE** (*Wireless Engineer*) | Standalone Wi-Fi 6 AP, frequency channel planning, bridge wireless, regulatory domain compliance | [`mtcewe-enterprise-wifi.md`](./references/mtcewe-enterprise-wifi.md), `mtik template mtcwe` |
+| **NOC** | **Operations & Observability** | Telemetry, Netwatch v7 failover alerts, Telegram webhooks, 5-layer troubleshooting protocol | [`monitoring-alerting.md`](./references/monitoring-alerting.md), [`troubleshooting-protocol.md`](./references/troubleshooting-protocol.md) |
 
 ---
 

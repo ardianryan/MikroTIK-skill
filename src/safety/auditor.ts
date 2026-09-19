@@ -11,7 +11,7 @@ export class SecurityAuditor {
   async runFullAudit(): Promise<AuditReport> {
     const items: AuditItem[] = [];
 
-    const [resource, dns, services, filters, mangle, tables, ntp] = await Promise.all([
+    const [resource, dns, services, filters, mangle, tables, ntp, bridges, ipv6Filters] = await Promise.all([
       this.conn.getResource().catch(() => ({} as SystemResource)),
       this.conn.getDnsSettings().catch(() => ({} as DnsSettings)),
       this.conn.getIpServices().catch(() => []),
@@ -19,6 +19,8 @@ export class SecurityAuditor {
       this.conn.getMangleRules().catch(() => []),
       this.conn.getRoutingTables().catch(() => []),
       this.conn.getNtpClient().catch(() => ({} as NtpClient)),
+      typeof this.conn.getBridges === 'function' ? this.conn.getBridges().catch(() => []) : Promise.resolve([]),
+      typeof this.conn.getIpv6Filters === 'function' ? this.conn.getIpv6Filters().catch(() => []) : Promise.resolve([]),
     ]);
 
     if (!resource || (!resource.version && !resource.platform && !resource.board)) {
@@ -215,6 +217,89 @@ export class SecurityAuditor {
         title: 'CPU Utilization',
         status: 'PASS',
         detail: `CPU utilization is normal at ${cpuLoad}%.`,
+      });
+    }
+
+    // Pillar 8: IPv6 Firewall Protection (MTCIPv6E)
+    if (ipv6Filters.length === 0) {
+      items.push({
+        pillar: 'Pillar 8: IPv6 Security',
+        title: 'IPv6 Firewall Filter Absence',
+        status: 'WARN',
+        detail: 'No IPv6 firewall filter rules found (/ipv6/firewall/filter is empty). If IPv6 is active, router and local clients are exposed directly to the Internet.',
+        recommendation: 'Deploy RFC 4890 compliant IPv6 firewall filter dropping unsolicited inbound traffic from WAN.',
+        remediationCommand: '/ipv6 firewall filter add chain=input connection-state=established,related action=accept; /ipv6 firewall filter add chain=input in-interface-list=!LAN action=drop comment="Drop WAN IPv6 Input"',
+      });
+    } else {
+      const hasIpv6Drop = ipv6Filters.some((f) => f.action === 'drop' && (f.chain === 'input' || f.chain === 'forward'));
+      if (hasIpv6Drop) {
+        items.push({
+          pillar: 'Pillar 8: IPv6 Security',
+          title: 'IPv6 Firewall Protection',
+          status: 'PASS',
+          detail: 'IPv6 firewall filter rules are configured with active drop policies.',
+        });
+      } else {
+        items.push({
+          pillar: 'Pillar 8: IPv6 Security',
+          title: 'IPv6 Firewall Drop Policy',
+          status: 'WARN',
+          detail: 'IPv6 firewall filter rules exist, but no explicit drop rules were found for input or forward chains.',
+          recommendation: 'Add drop rules for non-LAN input and unsolicited WAN forward.',
+          remediationCommand: '/ipv6 firewall filter add chain=forward in-interface-list=WAN action=drop comment="Drop unsolicited WAN IPv6"',
+        });
+      }
+    }
+
+    // Pillar 9: Layer 2 Loop Protection (MTCSWE)
+    if (bridges.length > 0) {
+      const unprotBridges = bridges.filter((b) => b['protocol-mode'] === 'none');
+      if (unprotBridges.length > 0) {
+        const names = unprotBridges.map((b) => b.name).join(', ');
+        items.push({
+          pillar: 'Pillar 9: Layer 2 Loop Protection',
+          title: 'Bridge Spanning Tree Protocol (STP/RSTP)',
+          status: 'CRITICAL',
+          detail: `Bridge(s) [${names}] have 'protocol-mode=none'. Spanning Tree is disabled, leaving the network vulnerable to catastrophic broadcast loops.`,
+          recommendation: 'Enable RSTP on all bridges.',
+          remediationCommand: '/interface bridge set [find protocol-mode=none] protocol-mode=rstp',
+        });
+      } else {
+        items.push({
+          pillar: 'Pillar 9: Layer 2 Loop Protection',
+          title: 'Bridge Spanning Tree Protocol',
+          status: 'PASS',
+          detail: 'All configured bridges have active Spanning Tree Protocol (RSTP/MSTP) enabled.',
+        });
+      }
+    } else {
+      items.push({
+        pillar: 'Pillar 9: Layer 2 Loop Protection',
+        title: 'Bridge Spanning Tree Protocol',
+        status: 'INFO',
+        detail: 'No software bridges configured on this router.',
+      });
+    }
+
+    // Pillar 10: Conntrack Transit Integrity (MTCTCE)
+    const dropsInvalidForward = filters.some(
+      (f) => f.chain === 'forward' && f.action === 'drop' && f['connection-state']?.includes('invalid')
+    );
+    if (dropsInvalidForward) {
+      items.push({
+        pillar: 'Pillar 10: Conntrack Transit Integrity',
+        title: 'Drop Invalid Forward Packets',
+        status: 'PASS',
+        detail: 'Firewall filter forward chain drops invalid connection states.',
+      });
+    } else {
+      items.push({
+        pillar: 'Pillar 10: Conntrack Transit Integrity',
+        title: 'Drop Invalid Forward Packets',
+        status: 'WARN',
+        detail: 'No rule found dropping invalid connection states in forward chain. Malformed or out-of-order packets can traverse the router.',
+        recommendation: 'Add drop rule for invalid connections in forward chain.',
+        remediationCommand: '/ip firewall filter add chain=forward connection-state=invalid action=drop comment="Drop Invalid Forward"',
       });
     }
 

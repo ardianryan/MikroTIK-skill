@@ -65,4 +65,50 @@ describe('SecurityAuditor', () => {
     assert.ok(winboxItem);
     assert.equal(winboxItem.status, 'WARN');
   });
+
+  test('flags CRITICAL when bridge has protocol-mode=none (MTCSWE)', async () => {
+    const mockConn = {
+      getResource: async () => ({ version: '7.16', board: 'CRS326-24G-2S+' }),
+      getDnsSettings: async () => ({ 'allow-remote-requests': false }),
+      getFirewallFilters: async () => [{ chain: 'input', action: 'drop', 'connection-state': 'invalid' }],
+      getIpServices: async () => [],
+      getMangleRules: async () => [],
+      getRoutingTables: async () => [],
+      getNtpClient: async () => ({ enabled: true }),
+      getBridges: async () => [{ name: 'bridge1', 'protocol-mode': 'none' }],
+      getIpv6Filters: async () => [{ chain: 'input', action: 'drop' }],
+    } as unknown as ConnectionManager;
+
+    const auditor = new SecurityAuditor(mockConn);
+    const report = await auditor.runFullAudit();
+
+    const bridgeItem = report.items.find((i) => i.pillar.includes('Layer 2 Loop Protection'));
+    assert.ok(bridgeItem);
+    assert.equal(bridgeItem.status, 'CRITICAL');
+    assert.equal(report.overallScore, 'VULNERABLE');
+  });
+
+  test('flags WARN when IPv6 firewall filter rules are absent (MTCIPv6E)', async () => {
+    const mockConn = {
+      getResource: async () => ({ version: '7.16', board: 'RB5009' }),
+      getDnsSettings: async () => ({ 'allow-remote-requests': false }),
+      getFirewallFilters: async () => [
+        { chain: 'input', action: 'drop', 'connection-state': 'invalid' },
+        { chain: 'forward', action: 'drop', 'connection-state': 'invalid' },
+      ],
+      getIpServices: async () => [],
+      getMangleRules: async () => [],
+      getRoutingTables: async () => [],
+      getNtpClient: async () => ({ enabled: true }),
+      getBridges: async () => [{ name: 'bridge1', 'protocol-mode': 'rstp' }],
+      getIpv6Filters: async () => [],
+    } as unknown as ConnectionManager;
+
+    const auditor = new SecurityAuditor(mockConn);
+    const report = await auditor.runFullAudit();
+
+    const ipv6Item = report.items.find((i) => i.pillar.includes('IPv6 Security'));
+    assert.ok(ipv6Item);
+    assert.equal(ipv6Item.status, 'WARN');
+  });
 });

@@ -117,6 +117,15 @@ export interface InterfaceItem {
   macAddress?: string;
 }
 
+export interface BridgeItem {
+  '.id'?: string;
+  name: string;
+  'protocol-mode'?: string;
+  'vlan-filtering'?: boolean | string;
+  disabled?: boolean | string;
+  comment?: string;
+}
+
 export interface ContainerItem {
   '.id'?: string;
   name?: string;

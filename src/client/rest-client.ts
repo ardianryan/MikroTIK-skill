@@ -11,6 +11,7 @@ import type {
   NtpClient,
   DnsSettings,
   InterfaceItem,
+  BridgeItem,
   ContainerItem,
   AdlistItem,
   InterfaceTrafficMonitor,
@@ -218,6 +219,14 @@ export class RouterOsRestClient {
       payload['.query'] = options.query;
     }
     return this.request<T[]>(`${formattedMenu}/print`, 'POST', payload);
+  }
+
+  async getBridges(): Promise<BridgeItem[]> {
+    return this.request<BridgeItem[]>('/interface/bridge');
+  }
+
+  async getIpv6Filters(): Promise<FirewallFilterRule[]> {
+    return this.request<FirewallFilterRule[]>('/ipv6/firewall/filter');
   }
 }
 
