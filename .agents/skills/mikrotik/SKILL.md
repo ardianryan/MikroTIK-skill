@@ -372,15 +372,130 @@ For detailed, step-by-step implementation templates, refer to:
 
 ---
 
-## 10. Official Documentation Retrieval for AI Agents
+## 10. RouterOS v7 REST API Engineering Specification
 
-When verifying unfamiliar RouterOS v7 syntax, switch chip capabilities, or new API endpoints:
-1. **Never Hallucinate Flags:** RouterOS syntax varies strictly between minor versions and hardware models.
-2. **Retrieve via Machine-Readable Endpoints:**
-   - **Table of Contents Index:** Fetch `https://manual.mikrotik.com/llms.txt` to find the exact documentation slug.
-   - **Direct Raw Markdown:** Append `.md` to the documentation URL (e.g. `https://manual.mikrotik.com/docs/developer-guides/rest-api.md`) to ingest the unformatted source directly.
-   - **CLI Reference Lookup:** Consult `https://manual.mikrotik.com/docs/cli-reference/` for machine-extracted properties and default values.
-3. **REST API Invariants:**
-   - Values returned by the REST API are always string-encoded in JSON.
-   - Continuous commands (`monitor`, `ping`, `bandwidth-test`) require limiting arguments (`once: ""`, `count: "4"`, `duration: "3s"`) to avoid 60-second timeouts.
-   - Batch script executions can be sent atomically to `/rest/execute`.
+The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added in v7.9) provides a JSON wrapper over the console API, accessible via `https://<router_ip>/rest` (HTTPS 443) or `http://<router_ip>/rest` (HTTP 80).
+
+### 10.1. Authentication & JSON Serialization Invariants
+- **Authentication:** Standard HTTP Basic Auth (`Authorization: Basic <base64(user:pass)>`), matching `/user` database credentials.
+- **Stringified Values:** All returned property values in JSON replies are strictly string-encoded (`"true"`, `"false"`, `"1200"`, `"10.0.0.1/24"`), regardless of internal type.
+- **Accepted Numbers:** Numeric values in payloads accept decimal, octal (starts with `0`), or hexadecimal (starts with `0x`). Exponential notation (e.g. `1e6`) is rejected.
+
+### 10.2. HTTP Verbs & Console Mapping
+| Verb | ROS CLI Command | Target Scope | Request Body | Response Payload |
+|---|---|---|---|---|
+| **GET** | `print` | `/rest/<menu>` or `/rest/<menu>/<id_or_name>` | None | Array of objects or single object |
+| **PUT** | `add` | `/rest/<menu>` | Single JSON object | Created object with `.id` |
+| **PATCH** | `set` | `/rest/<menu>/<id>` | Partial JSON object | Full updated object |
+| **DELETE** | `remove` | `/rest/<menu>/<id>` | None | Empty body (`404` if not found) |
+| **POST** | Arbitrary CLI | `/rest/<menu>/<command>` or endpoints | JSON parameters | Result array or status object |
+
+### 10.3. Query Filtering & Projections
+- **URL Parameter Filter:** `GET /rest/ip/address?network=10.0.0.0&dynamic=false`
+- **Property Projection (`.proplist`):**
+  - Via URL: `GET /rest/ip/address?.proplist=address,interface,disabled`
+  - Via POST payload: `POST /rest/interface/print` with `{".proplist": ["name", "type", "running"]}`
+- **Postfix Query Stack (`.query`):**
+  Complex boolean queries are executed via query stacks in POST requests:
+  ```json
+  POST /rest/interface/print
+  {
+    ".proplist": [".id", "name", "type"],
+    ".query": ["type=ether", "type=vlan", "#|!"]
+  }
+  ```
+  *(Equivalent to CLI: `/interface print where type!=ether && type!=vlan`)*
+
+### 10.4. Timeout Limits & Continuous Commands
+- **60-Second Hard Timeout:** Indefinite commands terminate with HTTP 400 `{"detail":"Session closed","error":400,"message":"Bad Request"}`.
+- **Mandatory Bounding Parameters:**
+  - `/rest/ping`: Must include `{"address": "1.1.1.1", "count": "4"}`
+  - `/rest/tool/bandwidth-test`: Must include `{"address": "...", "duration": "3s"}`
+  - `/rest/interface/monitor-traffic`: Must include `{"interface": "ether1", "once": ""}`
+  - `/rest/interface/lte/monitor` or `wifi/monitor`: Must include `{"numbers": "...", "once": ""}`
+
+### 10.5. Core Management Endpoints
+- **Atomic Script Execution:**
+  ```http
+  POST /rest/execute
+  {"script": "/log info \"Audit automated via REST\"; /system ntp client set enabled=yes"}
+  ```
+- **Configuration Export:**
+  ```http
+  POST /rest/export
+  {"compact": "", "file": "backup-sanitized.rsc"}
+  ```
+- **Rule Re-indexing (Move):**
+  ```http
+  POST /rest/ip/firewall/mangle/move
+  {".id": "*15", "destination": "*0"}
+  ```
+- **Inter-Router API Calling (`/tool/fetch`):**
+  ```routeros
+  /tool fetch http-method=post url="https://192.168.88.2/rest/execute" \
+      http-data="{\"script\":\"/log info synced\"}" \
+      http-header-field="Content-Type:application/json" \
+      user=admin password=secret output=user
+  ```
+
+---
+
+## 11. RouterOS v7 Subsystems Architecture & Standards
+
+Directly derived from the official documentation at `manual.mikrotik.com`:
+
+### 11.1. Bridging & L3 Hardware Offloading (`l3hw`)
+- **Bridge VLAN Filtering:**
+  Always configure VLANs using the unified bridge VLAN table rather than legacy master-port setups:
+  ```routeros
+  /interface bridge add name=bridge1 vlan-filtering=yes
+  /interface bridge vlan add bridge=bridge1 tagged=ether1,ether2 untagged=ether3 vlan-ids=10
+  ```
+- **L3 Hardware Offloading (ASIC Forwarding):**
+  On Marvell Prestera devices (CRS3xx, CCR2004, RB5009), route wire-speed inter-VLAN traffic in switch silicon without loading the main CPU:
+  ```routeros
+  /interface ethernet switch set 0 l3-hw-offloading=yes
+  /ip route add dst-address=0.0.0.0/0 gateway=192.168.1.1
+  ```
+
+### 11.2. Device Mode Hardening (`/system/device-mode`)
+RouterOS v7 includes a hardware security profile restricting dangerous features (`advanced`, `home`, `basic`, `ros`):
+- **Container Pre-requisite:** Running Docker containers requires:
+  ```routeros
+  /system/device-mode/update container=yes
+  ```
+  *(Requires physical reset button press or cold power cycle within 5 minutes to confirm).*
+
+### 11.3. Management Access & MAC Server Isolation
+- **Service Subnet Restrictions (`/ip service`):**
+  Never expose management services to `0.0.0.0/0`:
+  ```routeros
+  /ip service set winbox address=192.168.88.0/24 disabled=no
+  /ip service set ssh address=192.168.88.0/24 disabled=no
+  /ip service set www-ssl address=192.168.88.0/24 disabled=no
+  /ip service set api address=192.168.88.0/24 disabled=no
+  /ip service set telnet disabled=yes
+  /ip service set ftp disabled=yes
+  /ip service set www disabled=yes
+  ```
+- **MAC Server Isolation (`/tool mac-server`):**
+  Prevent Layer 2 rogue console access by restricting WinBox and MAC-Telnet to internal LAN interfaces:
+  ```routeros
+  /tool mac-server set allowed-interface-list=LAN
+  /tool mac-server mac-winbox set allowed-interface-list=LAN
+  /tool mac-server ping set enabled=no
+  ```
+
+### 11.4. Native DNS Sinkhole (`/ip dns adlist`)
+In RouterOS v7.12+, malware and ad domains are blocked natively without bloated static regex tables:
+```routeros
+/ip dns adlist add url="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" ssl-verify=yes
+/ip dns set cache-size=8192KiB
+```
+
+### 11.5. Live AI Documentation Retrieval Architecture
+When validating obscure properties or emerging v7 minor release features:
+- **Index Discovery:** Query `https://manual.mikrotik.com/llms.txt` for exact article paths.
+- **Direct Markdown Ingestion:** Append `.md` to documentation paths (e.g. `https://manual.mikrotik.com/docs/developer-guides/rest-api.md`).
+- **Kernel Reference:** Check `https://manual.mikrotik.com/docs/cli-reference/` for machine-extracted parameter types and factory defaults.
+
