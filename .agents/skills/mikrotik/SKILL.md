@@ -2,6 +2,10 @@
 name: mikrotik
 description: "Enterprise network automation, multi-WAN load balancing, security audits, and configuration runbooks for MikroTik RouterOS v7. Use when auditing RouterOS security, setting up dual-WAN failover/PCC, configuring WPA2/WPA3 Enterprise 802.1X RADIUS, deploying CAKE QoS, creating WireGuard tunnels, running containers, or managing IDE MCP integrations."
 references:
+  - references/hardware-switch-matrix.md
+  - references/doh-security.md
+  - references/ipv6-dual-stack.md
+  - references/monitoring-alerting.md
   - references/packet-flow-v7.md
   - references/bridge-vlan-switching.md
   - references/enterprise-routing-ospf-bgp.md
@@ -369,6 +373,10 @@ mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ## 9. Enterprise Reference Architecture Guides
 
 For detailed, step-by-step implementation templates, refer to:
+- [Hardware Architecture & Switch Chip Sizing Matrix](./references/hardware-switch-matrix.md)
+- [DNS-over-HTTPS (DoH) & Root CA Trust Store Security](./references/doh-security.md)
+- [Enterprise IPv6 Dual-Stack & RFC 4890 Firewall](./references/ipv6-dual-stack.md)
+- [Real-Time Incident Alerting, Webhooks & IPFIX Telemetry](./references/monitoring-alerting.md)
 - [RouterOS v7 Packet Flow & Conntrack Invariants](./references/packet-flow-v7.md)
 - [Enterprise Bridge VLAN Filtering & L3HW Offloading](./references/bridge-vlan-switching.md)
 - [RouterOS v7 Enterprise Routing (OSPFv3 & BGP Multi-Homing)](./references/enterprise-routing-ospf-bgp.md)
@@ -390,12 +398,13 @@ This automation toolkit and AI agent skill are strictly standardized against off
 | Certification Track | Core Engineering Domain | Standardized Tooling / Runbook |
 |---|---|---|
 | **MTCNA** (Associate) | System health, Safe Mode watchdog, sanitized backup, DHCP snooping, Bridge architecture | `mtik status`, `mtik backup --sanitize`, `SafeModeWatchdog`, [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md) |
-| **MTCRE** (Routing) | Policy-Based Routing (PBR), recursive route failover with Virtual SLA, point-to-point addressing | `mikrotik_force_routing`, recursive target-scope, [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md) |
-| **MTCTCE** (Traffic Control) | Strict Packet Flow v7 pipeline, Conntrack states, 4-tier Mangle ordering, CAKE/FQ-CoDel | `MangleOrderEngine`, [`packet-flow-v7.md`](./references/packet-flow-v7.md), [`qos-cake.md`](./references/qos-cake.md) |
-| **MTCSE** (Security) | 7-Pillar Security Audit, MAC-Server isolation, service port hardening, DNS adlist sinkholing | `SecurityAuditor`, `mikrotik_audit_security`, `mikrotik_get_adlist_status` |
+| **MTCRE** (Routing) | Policy-Based Routing (PBR), recursive route failover with Virtual SLA, IPv6 Dual-Stack | `mikrotik_force_routing`, recursive target-scope, [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md), [`ipv6-dual-stack.md`](./references/ipv6-dual-stack.md) |
+| **MTCTCE** (Traffic Control) | Strict Packet Flow v7 pipeline, Conntrack states, 4-tier Mangle ordering, CAKE/FQ-CoDel | `MangleOrderEngine`, [`packet-flow-v7.md`](./references/packet-flow-v7.md), [`qos-cake.md`](./references/qos-cake.md), [`hardware-switch-matrix.md`](./references/hardware-switch-matrix.md) |
+| **MTCSE** (Security) | 7-Pillar Security Audit, MAC-Server isolation, DNS-over-HTTPS (DoH) CA trust, DNS adlist sinkholing | `SecurityAuditor`, `mikrotik_audit_security`, `mikrotik_get_adlist_status`, [`doh-security.md`](./references/doh-security.md) |
 | **MTCUME** (User Management) | User Manager v7 dynamic VLAN assignment, 802.1X EAP-TLS / PEAP, Hotspot captive portal | [`radius-8021x.md`](./references/radius-8021x.md), [`hotspot-portal.md`](./references/hotspot-portal.md) |
 | **MTCWE** (Wireless) | Wi-Fi 6 / 802.11ax CAPsMAN v2 on RouterOS v7 (`/interface wifi`), fast roaming (802.11r/k/v) | [`radius-8021x.md`](./references/radius-8021x.md), `/interface wifi` |
 | **MTCINE** (Inter-Networking) | BGP v7 engine rewrite (`template`/`connection`), routing filters, VXLAN overlay, L3HW offload | [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md), [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md) |
+| **Operations & NOC** | Telemetry, incident alerting, Netwatch v7, Telegram webhooks, 5-layer troubleshooting | [`monitoring-alerting.md`](./references/monitoring-alerting.md), [`troubleshooting-protocol.md`](./references/troubleshooting-protocol.md) |
 
 ---
 
@@ -403,12 +412,12 @@ This automation toolkit and AI agent skill are strictly standardized against off
 
 The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added in v7.9) provides a JSON wrapper over the console API, accessible via `https://<router_ip>/rest` (HTTPS 443) or `http://<router_ip>/rest` (HTTP 80).
 
-### 10.1. Authentication & JSON Serialization Invariants
+### 11.1. Authentication & JSON Serialization Invariants
 - **Authentication:** Standard HTTP Basic Auth (`Authorization: Basic <base64(user:pass)>`), matching `/user` database credentials.
 - **Stringified Values:** All returned property values in JSON replies are strictly string-encoded (`"true"`, `"false"`, `"1200"`, `"10.0.0.1/24"`), regardless of internal type.
 - **Accepted Numbers:** Numeric values in payloads accept decimal, octal (starts with `0`), or hexadecimal (starts with `0x`). Exponential notation (e.g. `1e6`) is rejected.
 
-### 10.2. HTTP Verbs & Console Mapping
+### 11.2. HTTP Verbs & Console Mapping
 | Verb | ROS CLI Command | Target Scope | Request Body | Response Payload |
 |---|---|---|---|---|
 | **GET** | `print` | `/rest/<menu>` or `/rest/<menu>/<id_or_name>` | None | Array of objects or single object |
@@ -417,7 +426,7 @@ The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added
 | **DELETE** | `remove` | `/rest/<menu>/<id>` | None | Empty body (`404` if not found) |
 | **POST** | Arbitrary CLI | `/rest/<menu>/<command>` or endpoints | JSON parameters | Result array or status object |
 
-### 10.3. Query Filtering & Projections
+### 11.3. Query Filtering & Projections
 - **URL Parameter Filter:** `GET /rest/ip/address?network=10.0.0.0&dynamic=false`
 - **Property Projection (`.proplist`):**
   - Via URL: `GET /rest/ip/address?.proplist=address,interface,disabled`
@@ -433,7 +442,7 @@ The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added
   ```
   *(Equivalent to CLI: `/interface print where type!=ether && type!=vlan`)*
 
-### 10.4. Timeout Limits & Continuous Commands
+### 11.4. Timeout Limits & Continuous Commands
 - **60-Second Hard Timeout:** Indefinite commands terminate with HTTP 400 `{"detail":"Session closed","error":400,"message":"Bad Request"}`.
 - **Mandatory Bounding Parameters:**
   - `/rest/ping`: Must include `{"address": "1.1.1.1", "count": "4"}`
@@ -441,7 +450,7 @@ The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added
   - `/rest/interface/monitor-traffic`: Must include `{"interface": "ether1", "once": ""}`
   - `/rest/interface/lte/monitor` or `wifi/monitor`: Must include `{"numbers": "...", "once": ""}`
 
-### 10.5. Core Management Endpoints
+### 11.5. Core Management Endpoints
 - **Atomic Script Execution:**
   ```http
   POST /rest/execute
