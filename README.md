@@ -25,25 +25,26 @@
 
 ---
 
-## CRITICAL NOTICE & DISCLAIMER
+## Advisory, Scope & Operational Philosophy
 
-> [!CAUTION]
-> ### STRICT ROUTEROS v7 REQUIREMENT
-> This toolkit is **ENGINEERED EXCLUSIVELY FOR MIKROTIK ROUTEROS v7** (v7.1+).  
-> **DO NOT USE THIS TOOL ON ROUTEROS v6.** RouterOS v6 utilizes completely incompatible syntax for routing tables, FIB allocation, and firewall mangle rules, and lacks the native REST API subsystem.
+### Built to Assist, Not Replace Certified Engineers
+This toolkit is built upon the architectural standards of the 10 official MikroTik certification tracks (MTCNA through MTCINE). However, **it is engineered as an assistive automation companion, not as a substitute for certified network engineers, professional on-site diagnostics, or experienced architectural judgment**.
 
-> [!WARNING]
-> ### NOT RECOMMENDED FOR DIRECT PRODUCTION DEPLOYMENT
-> This software is intended as an automation assistant for personal and homelab environments.  
-> **IT IS STRONGLY ADVISED NOT TO RUN BLIND MUTATIONS DIRECTLY ON MISSION-CRITICAL ENTERPRISE PRODUCTION NETWORKS WITHOUT RIGOROUS STAGING.**
->
-> 1. **Always use Sandbox / Lab Mode first:** Test all rules and configurations on a local virtual machine (MikroTik Cloud Hosted Router / CHR) or testing workbench.
-> 2. **Always use `--dry-run`:** Preview the colored visual diff of every proposed rule before applying it to physical hardware.
-> 3. **Verify Watchdog Rollback:** Ensure safe-mode watchdog timers are active before mutating default routing or input firewall chains.
+While automation accelerates syntax generation, enforces deterministic mangle ordering, and audits configuration baselines, it does not replace the critical thinking of a qualified network engineer. Physical topology quirks, ISP peering agreements, and enterprise business context require human expertise. We encourage engineers to treat this toolkit as a powerful co-pilot: review every generated script, inspect dry-run diffs, and maintain responsible human oversight over all production decisions.
 
-> [!IMPORTANT]
-> ### DO AT YOUR OWN RISK (WARRANTY DISCLAIMER)
-> THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. NETWORK AUTOMATION CAN CAUSE IMMEDIATE DEVICE LOCKOUT, PACKET ROUTING LOOPS, OR SERVICE INTERRUPTIONS IF MISCONFIGURED. YOU ASSUME FULL AND SOLE RESPONSIBILITY FOR ANY NETWORK OUTAGE, DATA LOSS, OR HARDWARE MISBEHAVIOR RESULTING FROM THE USE OF THIS TOOL.
+### RouterOS v7 Exclusivity
+This toolkit is designed exclusively for **RouterOS v7 (v7.1+)**:
+- **Modern Kernel Routing:** Requires explicit `/routing table` declarations with active `fib` flags.
+- **REST API Subsystem:** Leverages native, structured JSON communications over HTTPS.
+- **Next-Gen Modules:** Built for native CAKE/FQ-CoDel QoS, BGP connection templates, User Manager v7, and the modern `/interface wifi` subsystem.
+
+*Legacy RouterOS v6 is not supported due to incompatible routing table syntax and the lack of a native REST API.*
+
+### Safe Operational Best Practices
+To maintain network reliability, the toolkit incorporates built-in guardrails:
+1. **Lab Staging:** Validate multi-WAN and firewall mutations on virtual instances (such as MikroTik Cloud Hosted Router / CHR) prior to physical deployment.
+2. **Visual Inspection (`--dry-run`):** Always preview proposed changes using colored visual diffs before applying them to physical hardware.
+3. **Automated Rollback:** Utilize the integrated 30-second safe-mode watchdog to ensure self-reverting rollbacks if network reachability is disrupted.
 
 ---
 
@@ -60,8 +61,8 @@ Managing MikroTik routers in multi-WAN environments often involves repetitive `.
 - **Dual-Engine Connection:**
   - **Primary:** High-speed RouterOS v7 native REST API (`/rest`, HTTPS/HTTP) with structured JSON responses and self-signed certificate tolerance.
   - **Automatic Fallback:** Seamless fallback to RouterOS native binary API socket (Port 8728 / 8729 SSL) if WebFig or REST is disabled.
-- **Automated 7-Pillar Security Audit:**
-  - One-command audit evaluating DNS open resolvers, exposed administrative services, missing firewall input drops, NTP clock drift, and Mangle Hairpin NAT leak risks.
+- **Automated 10-Pillar Security Audit:**
+  - One-command audit evaluating DNS open resolvers, exposed administrative services, missing firewall input drops, IPv6 firewall parity, bridge STP loop protection, NTP clock drift, and Mangle Hairpin NAT leak risks.
 - **Deterministic Mangle Order Engine:**
   - Prevents packet misrouting by enforcing the strict RouterOS hierarchy: **Bypass Rules** (`connection-nat-state=dstnat`, `LOCAL_BYPASS`) at index 0 $\rightarrow$ **Dedicated Client Overrides** $\rightarrow$ **PCC Load Balancing**.
 - **FIB Integrity Validation:**
