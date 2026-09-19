@@ -7,6 +7,11 @@ This repository is a production-grade networking automation toolkit for MikroTik
 2. **Type Safety:** 100% strict TypeScript types. Avoid `any` wherever possible.
 3. **Vendor-Neutral Terminology:** Never use commercial ISP brand names. Always refer to `ISP1`, `ISP2`, `WAN1`, `WAN2`, `Primary ISP`, or `Secondary ISP`.
 4. **Credential Isolation:** Never log, print, or leak raw passwords, authorization tokens, or secrets. Always use `sanitizeConfig` or equivalent masking.
+5. **Advisory & Confirmation-First Protocol (No Blind Mutations):**
+   - Never mutate live router configurations directly without prior interactive consultation.
+   - Always clarify user intent using open questions or the interactive `ask_question` dialog box.
+   - Always present a diagnostic assessment or audit report with numbered findings (`[F-01]`, `[F-02]`, etc.) before suggesting mutations.
+   - Require explicit user selection of which findings to remediate, preview changes with `--dry-run` visual diff, and apply mutations only under an armed 30-second safe-mode watchdog.
 
 <!-- antislop:start -->
 ## antislop

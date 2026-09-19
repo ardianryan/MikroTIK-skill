@@ -158,6 +158,7 @@ export interface ConnectionTestResult {
 export type AuditSeverity = 'PASS' | 'INFO' | 'WARN' | 'CRITICAL';
 
 export interface AuditItem {
+  id?: string;
   pillar: string;
   title: string;
   status: AuditSeverity;

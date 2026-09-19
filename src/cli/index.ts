@@ -85,14 +85,29 @@ program
 program
   .command('audit')
   .description('Execute automated 7-Pillar Security & Configuration Audit on RouterOS v7.')
-  .action(async () => {
+  .option('-f, --format <type>', 'Report format: text or markdown', 'text')
+  .option('-o, --output <file>', 'Save audit report to file')
+  .action(async (options: { format?: string; output?: string }) => {
     const config = loadRouterConfig();
     const conn = new ConnectionManager(config);
     const auditor = new SecurityAuditor(conn);
 
     try {
-      console.log(chalk.blue('Running 7-Pillar Security Audit...'));
+      if (options.format !== 'markdown') {
+        console.log(chalk.blue('Running 7-Pillar Security Audit...'));
+      }
       const report = await auditor.runFullAudit();
+
+      if (options.format === 'markdown') {
+        const md = SecurityAuditor.formatMarkdownReport(report);
+        if (options.output) {
+          fs.writeFileSync(options.output, md, 'utf8');
+          console.log(chalk.green(`Audit report saved to: ${options.output}`));
+        } else {
+          console.log(md);
+        }
+        return;
+      }
 
       console.log(chalk.bold(`\nAudit Report for ${report.routerIdentity} (${report.firmwareVersion})`));
       console.log(`Status: ${report.overallScore === 'SECURE' ? chalk.green('SECURE') : report.overallScore === 'NEEDS_ATTENTION' ? chalk.yellow('NEEDS ATTENTION') : chalk.red('VULNERABLE')}\n`);
@@ -103,12 +118,19 @@ program
         if (item.status === 'CRITICAL') badge = chalk.red('[CRIT]');
         if (item.status === 'INFO') badge = chalk.blue('[INFO]');
 
-        console.log(`${badge} ${chalk.bold(item.title)}: ${item.detail}`);
+        const idPrefix = item.id ? chalk.cyan(`[${item.id}] `) : '';
+        console.log(`${idPrefix}${badge} ${chalk.bold(item.title)}: ${item.detail}`);
         if (item.remediationCommand) {
           console.log(`       ${chalk.gray('Fix: ' + item.remediationCommand)}`);
         }
       }
       console.log('');
+
+      if (options.output) {
+        const md = SecurityAuditor.formatMarkdownReport(report);
+        fs.writeFileSync(options.output, md, 'utf8');
+        console.log(chalk.green(`Audit report markdown copy saved to: ${options.output}`));
+      }
     } catch (err) {
       console.error(chalk.red(`Audit execution failed: ${err instanceof Error ? err.message : String(err)}`));
       process.exitCode = 1;

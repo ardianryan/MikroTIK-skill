@@ -160,8 +160,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'mikrotik_audit_security': {
         const auditor = new SecurityAuditor(conn);
         const report = await auditor.runFullAudit();
+        const markdown = SecurityAuditor.formatMarkdownReport(report);
         return {
-          content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ ...report, markdownReport: markdown }, null, 2),
+            },
+          ],
         };
       }
 

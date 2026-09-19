@@ -51,7 +51,94 @@ All AI agents interacting with or generating configurations for MikroTik devices
 
 ---
 
-## 2. Operational Decision Trees
+## 2. Interactive Advisory & Confirmation-First Protocol (The Anti-Blind Execution Standard)
+
+AI agents operating in this repository must adopt a **consultative, confirmation-first workflow** identical to the `security-audit` and `antislop` guidelines. **Never execute live mutations blindly or assume authorization to reconfigure the user's network.**
+
+### 2.1. The Three Operating Modes
+
+| Mode | Trigger / Context | Agent Behavior | Mutates Router? |
+|---|---|---|:---:|
+| **Mode 1: Guidance & Diagnostic Audit (Default)** | General questions, troubleshooting reports, performance queries, or security reviews | Safely inspect router (`mikrotik_audit_security`, `mikrotik_get_system_status`, `mikrotik_list_mangle`). Generate an executive assessment with **Numbered Findings (`[F-01]`, `[F-02]`, ...)**, technical impacts, and copy-pasteable remediation commands. | ❌ NO |
+| **Mode 2: Staged Review & Dry-Run Diff** | User selects specific findings or asks to prepare a plan | Request user selection of finding IDs. Generate an exact unified diff preview using `dryRun: true` or `--dry-run`. Prompt the user for explicit approval before proceeding. | ❌ NO |
+| **Mode 3: Guarded Execution with Watchdog** | Explicit user approval received | Arm the automated 30-second safe-mode watchdog scheduler (`SafeModeWatchdog`). Apply the approved changes. Confirm post-flight device connectivity and disarm the watchdog. | ✅ YES (Guarded) |
+
+---
+
+### 2.2. Interactive Inquiries & Dialog Boxes (`ask_question`)
+
+Whenever user intent is underspecified, or before progressing from an Audit to a Plan or Execution, the agent **must** use the interactive `ask_question` tool (or structured multiple-choice questions in chat) to align on scope and preferences.
+
+#### Pattern 1: Goal Triage & Scoping
+When the user gives an ambiguous prompt like "help fix my network" or "check my router":
+```json
+{
+  "questions": [
+    {
+      "question": "What primary objective would you like to achieve on your MikroTik router?",
+      "options": [
+        "(Recommended) Run a 7-Pillar Security Audit and produce a diagnostic report",
+        "Troubleshoot slow internet or bufferbloat using CAKE QoS",
+        "Configure multi-WAN failover or policy routing (PCC)",
+        "Deploy a WireGuard Zero-Trust VPN or Docker container"
+      ],
+      "is_multi_select": false
+    }
+  ]
+}
+```
+
+#### Pattern 2: Operating Mode Confirmation
+Before touching any configuration or preparing an implementation plan:
+```json
+{
+  "questions": [
+    {
+      "question": "How would you like to proceed with the recommendations?",
+      "options": [
+        "(Recommended) Generate a detailed Audit Report with recommendations only (zero mutations)",
+        "Prepare an implementation plan with a visual dry-run diff preview",
+        "Apply approved remediations directly under a 30-second safe-mode watchdog"
+      ],
+      "is_multi_select": false
+    }
+  ]
+}
+```
+
+#### Pattern 3: Selecting Numbered Findings for Remediation
+After generating an audit report with numbered findings (`[F-01]`, `[F-02]`, etc.):
+```json
+{
+  "questions": [
+    {
+      "question": "Which audit findings would you like to prepare a remediation plan for?",
+      "options": [
+        "(Recommended) Remediate all CRITICAL and WARN findings",
+        "Remediate only CRITICAL findings (e.g. WAN Open DNS Resolver)",
+        "Select specific finding IDs manually (e.g. F-01, F-02)",
+        "None (keep current configuration, report only)"
+      ],
+      "is_multi_select": false
+    }
+  ]
+}
+```
+
+---
+
+### 2.3. Structured Audit Report Format
+
+When delivering an audit or diagnostic assessment in Mode 1, agents must structure the output in this standardized format:
+1. **Header & Device Health Snapshot:** Identity, firmware version, CPU utilization, free memory, and active interface counts.
+2. **Executive Assessment Summary:** Clear status badge (`SECURE`, `NEEDS_ATTENTION`, or `VULNERABLE`).
+3. **Numbered Findings Table:** Every finding MUST have an ID (`[F-01]`, `[F-02]`, etc.), Pillar, Severity (`CRITICAL`, `WARN`, `PASS`, `INFO`), Title, and technical consequence.
+4. **Remediation Action Plan:** Proposed copy-pasteable RouterOS v7 commands for each finding, clearly mapped to finding IDs.
+5. **Interactive Confirmation Prompt:** Asking the user which finding IDs they want to remediate or preview.
+
+---
+
+## 3. Operational Decision Trees
 
 ### Network Troubleshooting & Performance Triage
 ```
@@ -98,7 +185,7 @@ User wants to use MikroTik tools inside their AI coding environment
 
 ---
 
-## 3. Agent Triage & Execution Workflows
+## 4. Agent Triage & Execution Workflows
 
 ### Workflow A: 7-Pillar Security Audit & Hardening
 When asked to inspect, harden, or audit router security:
@@ -161,7 +248,7 @@ When the user shares configuration snippets or asks to export a backup:
 
 ---
 
-## 4. RouterOS v7 Production Mangle Blueprint
+## 5. RouterOS v7 Production Mangle Blueprint
 
 ```routeros
 # ==========================================================
@@ -205,7 +292,7 @@ When the user shares configuration snippets or asks to export a backup:
 
 ---
 
-## 5. RouterOS v7 vs v6 Critical Compatibility Matrix
+## 6. RouterOS v7 vs v6 Critical Compatibility Matrix
 
 | Feature | RouterOS v6 (Legacy) | RouterOS v7 (Production Standard) | Agent Action |
 |---|---|---|---|
@@ -219,7 +306,7 @@ When the user shares configuration snippets or asks to export a backup:
 
 ---
 
-## 6. Troubleshooting & Recovery Matrix
+## 7. Troubleshooting & Recovery Matrix
 
 | Symptom / Error Signature | Root Cause | Remediation Command |
 |---|---|---|
@@ -232,7 +319,7 @@ When the user shares configuration snippets or asks to export a backup:
 
 ---
 
-## 7. Tooling & Integration Reference
+## 8. Tooling & Integration Reference
 
 ### Global CLI (`mtik`)
 ```bash
@@ -272,7 +359,7 @@ mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 
 ---
 
-## 8. Enterprise Reference Architecture Guides
+## 9. Enterprise Reference Architecture Guides
 
 For detailed, step-by-step implementation templates, refer to:
 - [RouterOS v7 REST API Architecture & Semantics](./references/rest-api.md)
@@ -285,7 +372,7 @@ For detailed, step-by-step implementation templates, refer to:
 
 ---
 
-## 9. Official Documentation Retrieval for AI Agents
+## 10. Official Documentation Retrieval for AI Agents
 
 When verifying unfamiliar RouterOS v7 syntax, switch chip capabilities, or new API endpoints:
 1. **Never Hallucinate Flags:** RouterOS syntax varies strictly between minor versions and hardware models.

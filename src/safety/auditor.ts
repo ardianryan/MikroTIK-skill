@@ -218,6 +218,11 @@ export class SecurityAuditor {
     const hasWarn = items.some((i) => i.status === 'WARN');
     const overallScore = hasCritical ? 'VULNERABLE' : hasWarn ? 'NEEDS_ATTENTION' : 'SECURE';
 
+    // Assign stable numbered finding IDs (F-01, F-02, ...)
+    items.forEach((item, index) => {
+      item.id = `F-${String(index + 1).padStart(2, '0')}`;
+    });
+
     return {
       timestamp: new Date().toISOString(),
       routerIdentity: resource.board || resource.platform || 'MikroTik RouterOS',
@@ -226,4 +231,50 @@ export class SecurityAuditor {
       items,
     };
   }
+
+  static formatMarkdownReport(report: AuditReport): string {
+    const lines: string[] = [];
+    lines.push(`# RouterOS v7 Security & Configuration Audit Report`);
+    lines.push(`\n**Target Device:** \`${report.routerIdentity}\` | **Firmware:** \`${report.firmwareVersion}\` | **Timestamp:** \`${report.timestamp}\``);
+    lines.push(`**Overall Assessment:** **${report.overallScore}**\n`);
+
+    const criticalCount = report.items.filter((i) => i.status === 'CRITICAL').length;
+    const warnCount = report.items.filter((i) => i.status === 'WARN').length;
+    const passCount = report.items.filter((i) => i.status === 'PASS').length;
+    const infoCount = report.items.filter((i) => i.status === 'INFO').length;
+
+    lines.push(`| Severity | Count | Status Summary |`);
+    lines.push(`|---|:---:|---|`);
+    lines.push(`| 🔴 CRITICAL | ${criticalCount} | Immediate security risk or packet misrouting |`);
+    lines.push(`| 🟡 WARN | ${warnCount} | Unhardened service or suboptimal configuration |`);
+    lines.push(`| 🟢 PASS | ${passCount} | Compliant with RouterOS v7 security standard |`);
+    lines.push(`| 🔵 INFO | ${infoCount} | Informational advisory |`);
+    lines.push(`\n---`);
+
+    lines.push(`\n## Detailed Numbered Findings\n`);
+    lines.push(`| ID | Pillar | Severity | Title | Finding & Recommendation |`);
+    lines.push(`|---|---|:---:|---|---|`);
+
+    for (const item of report.items) {
+      const badge = item.status === 'CRITICAL' ? '🔴 CRITICAL' : item.status === 'WARN' ? '🟡 WARN' : item.status === 'PASS' ? '🟢 PASS' : '🔵 INFO';
+      const rec = item.recommendation ? `<br>👉 *Rec: ${item.recommendation}*` : '';
+      lines.push(`| **${item.id || '-'}** | ${item.pillar} | ${badge} | **${item.title}** | ${item.detail}${rec} |`);
+    }
+
+    const remediations = report.items.filter((i) => i.remediationCommand && (i.status === 'CRITICAL' || i.status === 'WARN'));
+    if (remediations.length > 0) {
+      lines.push(`\n---`);
+      lines.push(`\n## Proposed Remediation Runbook\n`);
+      lines.push(`> [!IMPORTANT]\n> Review proposed commands before applying. In interactive mode, select specific finding IDs to generate a targeted dry-run.\n`);
+      lines.push('```routeros');
+      for (const r of remediations) {
+        lines.push(`# [${r.id}] ${r.title} (${r.status})`);
+        lines.push(`${r.remediationCommand}`);
+      }
+      lines.push('```');
+    }
+
+    return lines.join('\n');
+  }
 }
+
