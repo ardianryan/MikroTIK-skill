@@ -184,4 +184,40 @@ export class RouterOsRestClient {
     });
     return res[0] || { name: interfaceName };
   }
+
+  async executeScript(script: string): Promise<unknown> {
+    return this.request('/execute', 'POST', { script });
+  }
+
+  async exportConfig(options?: { compact?: boolean; file?: string }): Promise<unknown> {
+    const payload: Record<string, string> = {};
+    if (options?.compact !== false) {
+      payload.compact = '';
+    }
+    if (options?.file) {
+      payload.file = options.file;
+    }
+    return this.request('/export', 'POST', payload);
+  }
+
+  async moveRule(menu: string, id: string, destinationId: string): Promise<unknown> {
+    const formattedMenu = menu.startsWith('/') ? menu : `/${menu}`;
+    return this.request(`${formattedMenu}/move`, 'POST', {
+      '.id': id,
+      destination: destinationId,
+    });
+  }
+
+  async queryMenu<T>(menu: string, options?: { proplist?: string[]; query?: string[] }): Promise<T[]> {
+    const formattedMenu = menu.startsWith('/') ? menu : `/${menu}`;
+    const payload: Record<string, unknown> = {};
+    if (options?.proplist && options.proplist.length > 0) {
+      payload['.proplist'] = options.proplist;
+    }
+    if (options?.query && options.query.length > 0) {
+      payload['.query'] = options.query;
+    }
+    return this.request<T[]>(`${formattedMenu}/print`, 'POST', payload);
+  }
 }
+

@@ -23,8 +23,8 @@ const program = new Command();
 
 program
   .name('mtik')
-  .description('Production-grade MikroTik RouterOS v7 automation and network management CLI.')
-  .version('1.0.1');
+  .description('MikroTik RouterOS v7 Production Automation & Management CLI')
+  .version('1.0.2');
 
 program
   .command('test')

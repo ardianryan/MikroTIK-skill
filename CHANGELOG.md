@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-09-19
+
+### Added
+- **Official RouterOS v7 REST API Deep Dive (`references/rest-api.md`):**
+  - Exhaustive documentation of RouterOS v7 REST API architecture, HTTP verb mappings (GET, PUT, PATCH, DELETE, POST), stringified JSON serialization, `.proplist` property projections, and `.query` stack filters.
+  - Documented timeout semantics (60-second limit) and mandatory bounding parameters (`once: ""`, `count`, `duration`) for continuous commands.
+  - Documented `/rest/execute` script evaluation, `/rest/export` configuration dumping, and `/rest/<menu>/move` rule re-indexing.
+- **Official Manual Architecture & LLM Retrieval Map (`references/official-manual-map.md`):**
+  - Architectural map of the official Docusaurus platform at `manual.mikrotik.com`.
+  - Added AI retrieval guidelines for machine-readable endpoints: `/llms.txt`, `/llms-full.txt`, direct per-page `.md` ingestion, and the auto-generated CLI Reference.
+- **Expanded REST Client Capabilities (`RouterOsRestClient`):**
+  - Added `executeScript(script)` for atomic script execution via `/rest/execute`.
+  - Added `exportConfig(options)` for compact/file export via `/rest/export`.
+  - Added `moveRule(menu, id, destinationId)` for rule reordering via `/rest/<menu>/move`.
+  - Added `queryMenu(menu, options)` for query stack filtering with `.proplist` and `.query`.
+  - Added unit test suite `test/rest-client.test.ts` (bringing test suite to 20 tests).
+
 ## [1.0.1] - 2026-09-18
 
 ### Added

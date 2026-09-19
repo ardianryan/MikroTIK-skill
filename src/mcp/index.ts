@@ -14,8 +14,8 @@ import { ConfigSanitizer } from '../safety/sanitizer.js';
 
 const server = new Server(
   {
-    name: 'mikrotik-skill-mcp',
-    version: '1.0.1',
+    name: 'mikrotik-skill',
+    version: '1.0.2',
   },
   {
     capabilities: {

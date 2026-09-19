@@ -7,6 +7,8 @@ references:
   - references/qos-cake.md
   - references/wireguard-vpn.md
   - references/docker-containers.md
+  - references/rest-api.md
+  - references/official-manual-map.md
 ---
 
 # MikroTik RouterOS v7 Automation & Enterprise Engineering Skill
@@ -273,8 +275,25 @@ mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ## 8. Enterprise Reference Architecture Guides
 
 For detailed, step-by-step implementation templates, refer to:
+- [RouterOS v7 REST API Architecture & Semantics](./references/rest-api.md)
+- [Official Manual Architecture & LLM Retrieval Map](./references/official-manual-map.md)
 - [WPA2/WPA3-Enterprise 802.1X & Dynamic VLAN Assignment](./references/radius-8021x.md)
 - [Responsive Captive Portal & Walled Garden](./references/hotspot-portal.md)
 - [Modern CAKE & FQ-CoDel Anti-Bufferbloat QoS](./references/qos-cake.md)
 - [WireGuard Remote-Access & Site-to-Site VPN](./references/wireguard-vpn.md)
 - [Docker Microservices & Container Networking](./references/docker-containers.md)
+
+---
+
+## 9. Official Documentation Retrieval for AI Agents
+
+When verifying unfamiliar RouterOS v7 syntax, switch chip capabilities, or new API endpoints:
+1. **Never Hallucinate Flags:** RouterOS syntax varies strictly between minor versions and hardware models.
+2. **Retrieve via Machine-Readable Endpoints:**
+   - **Table of Contents Index:** Fetch `https://manual.mikrotik.com/llms.txt` to find the exact documentation slug.
+   - **Direct Raw Markdown:** Append `.md` to the documentation URL (e.g. `https://manual.mikrotik.com/docs/developer-guides/rest-api.md`) to ingest the unformatted source directly.
+   - **CLI Reference Lookup:** Consult `https://manual.mikrotik.com/docs/cli-reference/` for machine-extracted properties and default values.
+3. **REST API Invariants:**
+   - Values returned by the REST API are always string-encoded in JSON.
+   - Continuous commands (`monitor`, `ping`, `bandwidth-test`) require limiting arguments (`once: ""`, `count: "4"`, `duration: "3s"`) to avoid 60-second timeouts.
+   - Batch script executions can be sent atomically to `/rest/execute`.
