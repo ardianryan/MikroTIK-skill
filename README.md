@@ -76,29 +76,76 @@ Managing MikroTik routers in multi-WAN environments often involves repetitive `.
 
 ---
 
-## Architecture
+## Architecture & How It Works
 
-```text
-                  ┌──────────────────────────────┐
-                  │    CLI (`mtik`) / AI Agent   │
-                  └──────────────┬───────────────┘
-                                 │
-                     [Connection Manager Layer]
-                                 │
-           ┌─────────────────────┴─────────────────────┐
-           ▼ (Primary Transport)                       ▼ (Automatic Fallback)
-   ┌──────────────────────┐                    ┌─────────────────────────┐
-   │ RouterOS v7 REST API │                    │ RouterOS Binary API     │
-   │ (Port 443 / 80)      │                    │ (Port 8728 / 8729 SSL)  │
-   └──────────┬───────────┘                    └────────────┬────────────┘
-              │                                             │
-              └──────────────────────┬──────────────────────┘
-                                     │
-                                     ▼
-                          ┌───────────────────────┐
-                          │ MikroTik RouterOS v7  │
-                          │   (Multi-WAN Router)  │
-                          └───────────────────────┘
+### 1. System Topology & Integration Gateways
+
+```mermaid
+flowchart TD
+    subgraph Clients ["User & AI Client Channels"]
+        U1["Local IDE (Cursor, Claude Desktop, Antigravity, Windsurf)"]
+        U2["Web AI (ChatGPT Custom GPT, Claude.ai Web)"]
+        U3["Network Engineer (Terminal CLI: mtik)"]
+    end
+
+    subgraph Gateways ["Gateways & Transport Layer"]
+        G1["Local MCP Server (stdio JSON-RPC)"]
+        G2["Vercel Serverless / HTTP Gateway (OpenAPI 3.1.0)"]
+        G3["CLI Command Dispatcher (Commander.js)"]
+    end
+
+    subgraph Engine ["Safety, Audit & Intelligence Engine"]
+        E1["Deterministic 4-Tier Mangle Order Engine"]
+        E2["10-Pillar Security Auditor"]
+        E3["10-Track Certified Template Generator"]
+        E4["30-Second Safe-Mode Watchdog"]
+        E5["Anonymizer & Config Sanitizer"]
+    end
+
+    subgraph RouterOS ["MikroTik RouterOS v7 Device"]
+        R1["RouterOS v7 REST API (:443 HTTPS / :80 HTTP)"]
+        R2["RouterOS Binary API (:8728 / :8729 SSL)"]
+    end
+
+    U1 -->|stdio| G1
+    U2 -->|HTTPS REST Actions / Bearer Auth| G2
+    U3 -->|Terminal Invocations| G3
+
+    G1 --> Engine
+    G2 --> Engine
+    G3 --> Engine
+
+    Engine -->|Primary Transport| R1
+    Engine -.->|Auto Fallback| R2
+```
+
+### 2. Use Case Flow: Safe Mutation with 30s Watchdog Rollback
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Engineer as AI Agent / Network Engineer
+    participant Engine as Mangle Engine & Validator
+    participant Watchdog as Safe-Mode Watchdog
+    participant Router as MikroTik RouterOS v7
+
+    Engineer->>Engine: Request Policy Route (IP: 192.168.88.50 -> to_ISP1)
+    Engine->>Router: Query active routing tables & mangle rules
+    Router-->>Engine: Return tables & mangle list
+    Engine->>Engine: Verify 'to_ISP1' registered with fib=yes
+    Engine->>Engine: Calculate placement index (Tier 1: after bypass, before PCC)
+    Engine->>Watchdog: Arm 30-second rollback watchdog
+    Watchdog->>Router: Inject temporary /system schedule rollback
+    Engine->>Router: Add mangle rule at calculated index
+    Engine->>Router: Ping / Heartbeat test router connectivity
+    alt Connection Verified
+        Engine->>Watchdog: Disarm watchdog
+        Watchdog->>Router: Remove temporary rollback schedule
+        Engine-->>Engineer: Mutation applied successfully & verified
+    else Connection Interrupted / Heartbeat Failed
+        Note over Router: 30s timer expires -> Router automatically self-reverts!
+        Router-->>Engineer: Router connection preserved without lockout
+    end
 ```
 
 ---
