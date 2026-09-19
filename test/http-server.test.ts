@@ -22,6 +22,20 @@ describe('MikroTikHttpServer (Pure Knowledge Engine)', () => {
     assert.equal(data.mode, 'knowledge-and-intelligence');
   });
 
+  test('GET /api returns metadata catalog directly', async () => {
+    const res = await fetch(`${baseUrl}/api`);
+    assert.equal(res.status, 200);
+    const data = (await res.json()) as { name: string; version: string };
+    assert.equal(data.name, 'mikrotik-skill');
+  });
+
+  test('GET /api?path=/openapi.json resolves rewritten Vercel serverless request', async () => {
+    const res = await fetch(`${baseUrl}/api?path=/openapi.json`);
+    assert.equal(res.status, 200);
+    const data = (await res.json()) as { openapi: string };
+    assert.equal(data.openapi, '3.1.0');
+  });
+
   test('GET /health returns healthy', async () => {
     const res = await fetch(`${baseUrl}/health`);
     assert.equal(res.status, 200);

@@ -48,7 +48,7 @@ export class MikroTikHttpServer {
   async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const origin = req.headers.host ? `http://${req.headers.host}` : this.serverUrl;
     const reqUrl = new URL(req.url || '/', origin);
-    const pathname = reqUrl.pathname;
+    const pathname = reqUrl.searchParams.get('path') || reqUrl.pathname;
     const method = (req.method || 'GET').toUpperCase();
 
     if (method === 'OPTIONS') {
@@ -61,7 +61,7 @@ export class MikroTikHttpServer {
       return;
     }
 
-    if (pathname === '/' && method === 'GET') {
+    if ((pathname === '/' || pathname === '/api' || pathname === '/api/') && method === 'GET') {
       this.sendJson(res, 200, {
         name: 'mikrotik-skill',
         version: '1.1.0',

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MikroTik Skill &mdash; RouterOS v7 Knowledge &amp; OpenAPI Gateway</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-heading: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79b8ff;
+      --green: #3fb950;
+      --code-bg: #090d13;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-muted);
+    }
+    .badge-active {
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--green);
+      background: rgba(63, 185, 80, 0.1);
+    }
+    h1 {
+      color: var(--text-heading);
+      font-size: 1.85rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    p.lead {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .callout {
+      background: rgba(88, 166, 255, 0.08);
+      border: 1px solid rgba(88, 166, 255, 0.25);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 0.92rem;
+    }
+    .callout strong {
+      color: var(--text-heading);
+    }
+    h2 {
+      color: var(--text-heading);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    .endpoints {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .endpoint-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+    }
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .method {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .method-get {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+    }
+    .method-post {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+    .path a {
+      color: var(--text-heading);
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .path a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    .description {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      color: var(--text);
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-row">
+        <span class="badge badge-active">Gateway Online</span>
+        <span class="badge">OpenAPI 3.1.0</span>
+        <span class="badge">RouterOS v7</span>
+        <span class="badge">Zero Router Credentials</span>
+      </div>
+      <h1>MikroTik Skill Knowledge &amp; OpenAPI Gateway</h1>
+      <p class="lead">Air-gapped intelligence engine, certified configuration curricula, and schema gateway for AI pair programmers and ChatGPT Custom GPT Actions.</p>
+    </header>
+
+    <div class="callout">
+      <strong>Zero Router Credentials Required:</strong> This gateway operates strictly as an offline knowledge engine. Router IP addresses, credentials, and live network ports are never stored or requested by this service.
+    </div>
+
+    <h2>Available Endpoints</h2>
+    <div class="endpoints">
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="path"><a href="/openapi.json">/openapi.json</a></span>
+        </div>
+        <div class="description">Standard OpenAPI 3.1.0 schema specification for ChatGPT Custom GPT Actions, Claude, and API clients.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="path"><a href="/health">/health</a></span>
+        </div>
+        <div class="description">Liveness health check confirming knowledge engine readiness.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="path"><a href="/api/v1/knowledge/tracks">/api/v1/knowledge/tracks</a></span>
+        </div>
+        <div class="description">Lists all 10 MikroTik Certification Track engineering blueprints (MTCNA, MTCRE, MTCSE, MTCSWE, etc.).</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="path"><a href="/api/v1/knowledge/template?track=mtcre">/api/v1/knowledge/template?track=mtcre</a></span>
+        </div>
+        <div class="description">Returns production-ready, 1-click RouterOS v7 CLI configuration scripts for the requested track.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="path"><a href="/api/v1/knowledge/prompt">/api/v1/knowledge/prompt</a></span>
+        </div>
+        <div class="description">Exports Senior Network Engineer system prompt instructions for RouterOS v7 LLM tuning.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-post">POST</span>
+          <span class="path"><a href="/api/v1/knowledge/sanitize">/api/v1/knowledge/sanitize</a></span>
+        </div>
+        <div class="description">Redacts passwords, MAC addresses, serial numbers, and VPN tokens from raw RouterOS configurations.</div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-post">POST</span>
+          <span class="path"><a href="/api/v1/knowledge/validate">/api/v1/knowledge/validate</a></span>
+        </div>
+        <div class="description">Verifies FIB table presence and routing mark compliance before firewall mangle rule injection.</div>
+      </div>
+    </div>
+
+    <h2>ChatGPT Custom GPT Setup</h2>
+    <p class="description">To connect this knowledge engine to ChatGPT:</p>
+    <pre>1. In ChatGPT GPT Editor, go to "Configure" &gt; "Actions" &gt; "Create new action".
+2. Set Authentication to "None".
+3. Under "Schema", select "Import from URL" and enter:
+   https://&lt;your-deployment-url&gt;.vercel.app/openapi.json
+4. Save and publish your Custom GPT.</pre>
+
+    <footer>
+      <div>Part of <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener">MikroTik-Skill</a> Toolkit</div>
+      <div>GPL-3.0-or-later License</div>
+    </footer>
+  </div>
+</body>
+</html>

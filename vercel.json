@@ -1,9 +1,22 @@
 {
   "version": 2,
+  "outputDirectory": "public",
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/api"
+      "source": "/openapi.json",
+      "destination": "/api?path=/openapi.json"
+    },
+    {
+      "source": "/health",
+      "destination": "/api?path=/health"
+    },
+    {
+      "source": "/api",
+      "destination": "/api?path=/"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api?path=/api/$1"
     }
   ]
 }
