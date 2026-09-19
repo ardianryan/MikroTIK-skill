@@ -18,6 +18,7 @@ import { ConfigSanitizer } from '../safety/sanitizer.js';
 import { formatBatchDiff, type DiffEntry } from '../safety/diff.js';
 import { McpInstaller, type IdeTarget } from '../mcp/installer.js';
 import { CertifiedTemplateGenerator } from '../safety/templates.js';
+import { ChatPromptExporter } from '../safety/prompt-export.js';
 import type { InterfaceTrafficMonitor } from '../client/types.js';
 
 const program = new Command();
@@ -668,6 +669,28 @@ program
       process.exitCode = 1;
     } finally {
       await conn.close();
+    }
+  });
+
+program
+  .command('prompt')
+  .description('Export or print optimized system prompt for ChatGPT Custom GPT or Claude.ai Project.')
+  .option('-t, --target <target>', 'Target platform: chatgpt | claude | generic', 'chatgpt')
+  .option('-o, --output <file>', 'Save prompt to a markdown file')
+  .action((opts) => {
+    const prompt = ChatPromptExporter.getSystemPrompt();
+    if (opts.output) {
+      const outPath = path.resolve(process.cwd(), opts.output);
+      fs.writeFileSync(outPath, prompt, 'utf-8');
+      console.log(chalk.green(`\n✔ System prompt saved to: ${chalk.bold(outPath)}\n`));
+    } else {
+      console.log(chalk.cyan.bold(`\n# =========================================================`));
+      console.log(chalk.cyan.bold(`# MikroTik RouterOS v7 Certified Engineer System Prompt`));
+      console.log(chalk.gray(`# Optimized for ChatGPT Custom GPTs & Claude.ai Projects`));
+      console.log(chalk.cyan.bold(`# =========================================================\n`));
+      console.log(prompt);
+      console.log(chalk.gray(`\nTip: Copy-paste the above into your ChatGPT Custom GPT Instructions or Claude Project Knowledge.`));
+      console.log('');
     }
   });
 

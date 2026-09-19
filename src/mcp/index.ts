@@ -12,6 +12,7 @@ import { MangleOrderEngine } from '../safety/order-engine.js';
 import { SafeModeWatchdog } from '../safety/watchdog.js';
 import { ConfigSanitizer } from '../safety/sanitizer.js';
 import { CertifiedTemplateGenerator } from '../safety/templates.js';
+import { ChatPromptExporter } from '../safety/prompt-export.js';
 
 const server = new Server(
   {
@@ -166,6 +167,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
           },
           required: ['endpoint'],
+        },
+      },
+      {
+        name: 'mikrotik_get_chat_prompt',
+        description: 'Get certified RouterOS v7 Senior Network Engineer system prompt tailored for ChatGPT Custom GPTs or Claude.ai Projects. Ensures AI outputs 1-click copy-pasteable CLI commands.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
         },
       },
     ],
@@ -420,6 +429,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const res = await conn.restRequest(formattedEndpoint, method, body);
         return {
           content: [{ type: 'text', text: JSON.stringify(ConfigSanitizer.sanitizeJson(res), null, 2) }],
+        };
+      }
+
+      case 'mikrotik_get_chat_prompt': {
+        const prompt = ChatPromptExporter.getSystemPrompt();
+        return {
+          content: [{ type: 'text', text: prompt }],
         };
       }
 

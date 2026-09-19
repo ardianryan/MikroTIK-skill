@@ -178,6 +178,20 @@ mtik adlist
 # Manage multi-router profiles securely
 mtik profile --save homelab
 mtik profile
+
+# Generate certified templates across all 10 MikroTik Certification tracks
+mtik template --list
+mtik template mtcswe --output mtcswe-switching.rsc
+
+# Execute arbitrary RouterOS CLI scripts atomically
+mtik exec "/ip/address/print"
+
+# Query RouterOS v7 REST endpoints directly
+mtik rest GET /system/resource
+
+# Export optimized system prompt for ChatGPT Custom GPT or Claude.ai Project
+mtik prompt
+mtik prompt -o mikrotik-system-prompt.md
 ```
 
 ---
@@ -210,13 +224,17 @@ Add this entry to your `mcp_config.json` or `claude_desktop_config.json`:
 ### Available Tools:
 - `mikrotik_test_connection`: Test connectivity & transport detection.
 - `mikrotik_get_system_status`: Inspect CPU, memory, uptime, and interfaces.
-- `mikrotik_audit_security`: Execute 7-Pillar Security Audit.
+- `mikrotik_audit_security`: Execute 10-Pillar Security Audit.
 - `mikrotik_list_mangle`: View mangle rules with hierarchy analysis.
 - `mikrotik_force_routing`: Assign client IP to routing table with dry-run and watchdog protection.
 - `mikrotik_manage_dhcp_lease`: List and add static DHCP leases.
 - `mikrotik_export_sanitized_config`: Export anonymized configuration for safe AI analysis.
 - `mikrotik_manage_container`: List and restart Docker containers.
 - `mikrotik_get_adlist_status`: Query active DNS adblocker feeds.
+- `mikrotik_generate_template`: Generate certified configurations for all 10 MikroTik tracks (MTCNA, MTCRE, MTCINE, MTCSWE, MTCTCE, MTCSE, MTCIPv6E, MTCUME, MTCEWE, MTCWE).
+- `mikrotik_execute_command`: Atomically execute arbitrary RouterOS CLI commands or scripts.
+- `mikrotik_rest_query`: Query RouterOS v7 `/rest/<endpoint>` with GET, POST, PUT, PATCH, DELETE.
+- `mikrotik_get_chat_prompt`: Retrieve senior engineer prompt for ChatGPT and Claude.ai.
 
 ---
 
