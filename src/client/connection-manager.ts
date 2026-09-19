@@ -125,6 +125,14 @@ export class ConnectionManager {
     }
   }
 
+  getRestClient(): RouterOsRestClient {
+    return this.restClient;
+  }
+
+  getBinaryClient(): RouterOsBinaryClient {
+    return this.binaryClient;
+  }
+
   private async executeWithFallback<T>(
     restFn: (client: RouterOsRestClient) => Promise<T>,
     binaryFn: (client: RouterOsBinaryClient) => Promise<T>
@@ -139,7 +147,11 @@ export class ConnectionManager {
 
     try {
       return await restFn(this.restClient);
-    } catch {
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes('RouterOS REST Error (4') || errMsg.includes('RouterOS REST Error (5')) {
+        throw err;
+      }
       this.verifiedTransport = 'binary';
       return await binaryFn(this.binaryClient);
     }

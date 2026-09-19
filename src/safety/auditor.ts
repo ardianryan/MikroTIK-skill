@@ -21,6 +21,10 @@ export class SecurityAuditor {
       this.conn.getNtpClient().catch(() => ({} as NtpClient)),
     ]);
 
+    if (!resource || (!resource.version && !resource.platform && !resource.board)) {
+      throw new Error('Router unreachable or returned empty system resources. Verify device connectivity, port, and credentials.');
+    }
+
     // Pillar 1: DNS Open Resolver Check
     const allowRemote = dns['allow-remote-requests'] === true || dns['allow-remote-requests'] === 'true' || dns['allow-remote-requests'] === 'yes';
     if (allowRemote) {
