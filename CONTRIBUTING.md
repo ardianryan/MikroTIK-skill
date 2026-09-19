@@ -9,8 +9,8 @@ This project was authored by **Ardian Ryan** (<me@ardianryan.com>) primarily for
 
 1. **Clone and Install:**
    ```bash
-   git clone https://github.com/ardianryan/mikrotik-skill.git
-   cd mikrotik-skill
+   git clone https://github.com/ardianryan/MikroTik-Skill.git
+   cd MikroTik-Skill
    npm install
    ```
 

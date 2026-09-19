@@ -11,7 +11,7 @@
 
 # MikroTik RouterOS v7 Skill & CLI Toolkit
 
-[![CI](https://github.com/ardianryan/mikrotik-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/ardianryan/mikrotik-skill/actions/workflows/ci.yml)
+[![CI](https://github.com/ardianryan/MikroTik-Skill/actions/workflows/ci.yml/badge.svg)](https://github.com/ardianryan/MikroTik-Skill/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
 [![Target](https://img.shields.io/badge/RouterOS-v7.x_Only-red.svg)](https://mikrotik.com/)
@@ -175,8 +175,8 @@ This toolkit is continuously validated against physical MikroTik RouterOS v7 har
 ### 2. Quickstart
 ```bash
 # Clone the repository
-git clone https://github.com/ardianryan/mikrotik-skill.git
-cd mikrotik-skill
+git clone https://github.com/ardianryan/MikroTik-Skill.git
+cd MikroTik-Skill
 
 # Install dependencies
 npm install
