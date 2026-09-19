@@ -19,6 +19,8 @@ import { formatBatchDiff, type DiffEntry } from '../safety/diff.js';
 import { McpInstaller, type IdeTarget } from '../mcp/installer.js';
 import { CertifiedTemplateGenerator } from '../safety/templates.js';
 import { ChatPromptExporter } from '../safety/prompt-export.js';
+import { MikroTikHttpServer } from '../server/http.js';
+import { OpenApiGenerator } from '../server/openapi.js';
 import type { InterfaceTrafficMonitor } from '../client/types.js';
 
 const program = new Command();
@@ -26,7 +28,7 @@ const program = new Command();
 program
   .name('mtik')
   .description('MikroTik RouterOS v7 Production Automation & Management CLI')
-  .version('1.0.2');
+  .version('1.1.0');
 
 program
   .command('test')
@@ -691,6 +693,46 @@ program
       console.log(prompt);
       console.log(chalk.gray(`\nTip: Copy-paste the above into your ChatGPT Custom GPT Instructions or Claude Project Knowledge.`));
       console.log('');
+    }
+  });
+
+program
+  .command('serve')
+  .description('Start HTTP & OpenAPI Gateway Server for ChatGPT Actions and Remote MCP.')
+  .option('-p, --port <number>', 'HTTP server port', '3000')
+  .option('--token <secret>', 'Bearer token / API key required for API requests')
+  .action((opts) => {
+    const port = parseInt(opts.port, 10) || 3000;
+    const server = new MikroTikHttpServer({
+      port,
+      apiKey: opts.token || process.env.MTIK_API_KEY,
+    });
+    server.listen(port);
+    console.log(chalk.cyan.bold(`\n🚀 MikroTik HTTP & OpenAPI Server running on port ${port}`));
+    console.log(chalk.gray(`- Health Check: http://localhost:${port}/health`));
+    console.log(chalk.gray(`- OpenAPI Schema: http://localhost:${port}/openapi.json`));
+    if (opts.token || process.env.MTIK_API_KEY) {
+      console.log(chalk.green(`🔒 Protected with Bearer token authentication.`));
+    } else {
+      console.log(chalk.yellow(`⚠️ Warning: No MTIK_API_KEY set. Requests are unauthenticated.`));
+    }
+    console.log(chalk.gray(`Press [Ctrl+C] to stop.\n`));
+  });
+
+program
+  .command('openapi')
+  .description('Generate and export OpenAPI 3.1.0 schema for ChatGPT Custom GPT Actions.')
+  .option('-o, --output <file>', 'Save OpenAPI schema to a file')
+  .option('-u, --url <url>', 'Base server URL for OpenAPI specification', 'https://your-deployment.vercel.app')
+  .action((opts) => {
+    const spec = OpenApiGenerator.getSpecification(opts.url);
+    const json = JSON.stringify(spec, null, 2);
+    if (opts.output) {
+      const outPath = path.resolve(process.cwd(), opts.output);
+      fs.writeFileSync(outPath, json, 'utf-8');
+      console.log(chalk.green(`\n✔ OpenAPI schema saved to: ${chalk.bold(outPath)}\n`));
+    } else {
+      console.log(json);
     }
   });
 

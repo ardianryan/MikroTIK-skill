@@ -137,7 +137,89 @@ ROUTEROS_REST_PORT=443
 ROUTEROS_USE_SSL=true
 ROUTEROS_API_PORT=8728
 ROUTEROS_API_SSL_PORT=8729
+
+# Optional API Key for Remote / Vercel / ChatGPT Action Gateway
+MTIK_API_KEY=your_secret_api_token
 ```
+
+---
+
+## 🚀 Panduan Penggunaan Mudah (Easy to Use)
+
+Pilih metode integrasi yang paling sesuai dengan alur kerja Anda:
+
+| Mode | Target Platform | Perlu Deploy? | Cara Pakai |
+| :--- | :--- | :---: | :--- |
+| **Mode 1: Local IDE** | **Cursor, Claude Desktop, Antigravity, Windsurf** | ❌ **0 Deploy** | Berjalan 100% lokal via `stdio`. Sambungkan langsung ke router di `192.168.88.1`. |
+| **Mode 2: Web AI (Prompt)** | **ChatGPT Web, Claude.ai Web** | ❌ **0 Deploy** | Ekspor prompt via `mtik prompt`, paste ke Custom GPT/Claude Project. AI menghasilkan skrip siap copas. |
+| **Mode 3: Web AI (Direct Actions)** | **ChatGPT Custom GPT Actions** | ☁️ **Vercel Deploy** | Deploy ke Vercel untuk menghubungkan cloud ChatGPT langsung ke router secara otomatis via OpenAPI. |
+
+### 🌟 Mode 1: Local IDE (Paling Praktis & Bebas Deploy)
+1. Build project:
+   ```bash
+   npm run build
+   ```
+2. Tambahkan konfigurasi ke `mcp_config.json` atau `claude_desktop_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "mikrotik": {
+         "command": "node",
+         "args": ["/Users/ardianryan/Documents/MikroTIK-Skill/dist/mcp/index.js"],
+         "env": {
+           "ROUTEROS_HOST": "192.168.88.1",
+           "ROUTEROS_USER": "admin",
+           "ROUTEROS_PASSWORD": "your_secure_password"
+         }
+       }
+     }
+   }
+   ```
+3. AI di IDE Anda langsung bisa membaca status router, menjalankan audit, dan mengeksekusi perintah.
+
+---
+
+### 💬 Mode 2: Web AI via Copy-Paste (ChatGPT & Claude Web)
+1. Ekspor instruksi certified engineer:
+   ```bash
+   mtik prompt -o mikrotik-system-prompt.md
+   ```
+2. Masukkan isi file tersebut ke kolom **Instructions** di ChatGPT Custom GPT atau Claude Project.
+3. ChatGPT/Claude di web browser akan selalu menghasilkan skrip `routeros` murni berstandar v7 yang dapat langsung di-copas ke WinBox Terminal atau dijalankan lewat:
+   ```bash
+   mtik exec "<perintah-dari-chatgpt>"
+   ```
+
+---
+
+### ☁️ Mode 3: Web AI via Vercel Deployment & ChatGPT Actions
+Gunakan mode ini jika Anda ingin tombol **Actions** di ChatGPT Web bisa langsung mengeksekusi router secara otomatis.
+
+> **Kenapa Vercel, bukan GitHub Pages?**  
+> **GitHub Pages** hanya melayani file statis (HTML/CSS) di browser tanpa server backend Node.js dan tidak bisa membuka socket/koneksi ke router Anda.  
+> **Vercel** menyediakan Serverless Function (Node.js) di cloud dengan URL HTTPS publik untuk OpenAPI / ChatGPT Actions.
+
+#### Langkah Cepat Deploy Vercel (1 Menit):
+1. **Deploy ke Vercel:**
+   ```bash
+   # Login dan deploy langsung dari terminal
+   npx vercel
+   ```
+2. **Atur Environment Variables di Vercel Dashboard:**
+   - `ROUTEROS_HOST`: Host / DDNS router Anda (contoh: `xxx.sn.mynetname.net` atau IP publik/VPN).
+   - `ROUTEROS_USER`: User admin / API MikroTik.
+   - `ROUTEROS_PASSWORD`: Password router.
+   - `ROUTEROS_REST_PORT`: `443`.
+   - `ROUTEROS_USE_SSL`: `true`.
+   - `MTIK_API_KEY`: Token rahasia pengaman (misal `my-secret-key-12345`).
+3. **Impor ke ChatGPT Custom GPT Actions:**
+   - Di Custom GPT Editor $\rightarrow$ **Actions** $\rightarrow$ **Create new action**.
+   - Pilih **Import from URL** dan masukkan:  
+     `https://<nama-project-anda>.vercel.app/openapi.json`
+   - Pada opsi **Authentication**, pilih **API Key**, Auth Type: **Bearer**, lalu masukkan token `MTIK_API_KEY` Anda.
+   - Selesai! ChatGPT di web sekarang bisa membaca status, menjalankan audit, dan memicu perintah MikroTik secara langsung.
+
+*(Catatan Jaringan Privat / Homelab: Jika router Anda berada di balik NAT/CGNAT tanpa IP publik, jalankan `mtik serve --port 3000` di laptop/server lokal dan gunakan Cloudflare Tunnel gratis `cloudflared tunnel`)*.
 
 ---
 
