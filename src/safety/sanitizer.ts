@@ -39,8 +39,12 @@ export class ConfigSanitizer {
   static sanitizeJson<T>(data: T): T {
     if (data === null || data === undefined) return data;
     if (typeof data === 'string') return this.sanitizeText(data) as unknown as T;
-    const jsonStr = JSON.stringify(data);
-    const sanitizedStr = this.sanitizeText(jsonStr);
-    return JSON.parse(sanitizedStr) as T;
+    try {
+      const jsonStr = JSON.stringify(data);
+      const sanitizedStr = this.sanitizeText(jsonStr);
+      return JSON.parse(sanitizedStr) as T;
+    } catch {
+      return data;
+    }
   }
 }

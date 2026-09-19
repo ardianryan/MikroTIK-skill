@@ -3,28 +3,20 @@ import assert from 'node:assert/strict';
 import { OpenApiGenerator } from '../src/server/openapi.js';
 
 describe('OpenApiGenerator', () => {
-  test('generates valid OpenAPI 3.1.0 schema', () => {
+  test('generates valid OpenAPI 3.1.0 schema for pure knowledge service', () => {
     const spec = OpenApiGenerator.getSpecification('https://test-mcp.vercel.app');
     assert.equal(spec.openapi, '3.1.0');
     assert.ok(spec.info && typeof spec.info === 'object');
-    assert.equal((spec.info as { title: string }).title, 'MikroTik RouterOS v7 Certified Automation API');
+    assert.equal((spec.info as { title: string }).title, 'MikroTik RouterOS v7 Certified Knowledge & Intelligence API');
   });
 
-  test('includes key operations for ChatGPT actions', () => {
+  test('includes zero-credential knowledge operations for ChatGPT actions', () => {
     const spec = OpenApiGenerator.getSpecification();
     const paths = spec.paths as Record<string, Record<string, unknown>>;
-    assert.ok(paths['/api/v1/action/status']);
-    assert.ok(paths['/api/v1/action/audit']);
-    assert.ok(paths['/api/v1/action/route-force']);
-    assert.ok(paths['/api/v1/action/exec']);
-    assert.ok(paths['/api/v1/action/template']);
-  });
-
-  test('includes BearerAuth security scheme', () => {
-    const spec = OpenApiGenerator.getSpecification();
-    const components = spec.components as { securitySchemes: { BearerAuth: { type: string; scheme: string } } };
-    assert.ok(components.securitySchemes.BearerAuth);
-    assert.equal(components.securitySchemes.BearerAuth.type, 'http');
-    assert.equal(components.securitySchemes.BearerAuth.scheme, 'bearer');
+    assert.ok(paths['/api/v1/knowledge/tracks']);
+    assert.ok(paths['/api/v1/knowledge/template']);
+    assert.ok(paths['/api/v1/knowledge/validate']);
+    assert.ok(paths['/api/v1/knowledge/sanitize']);
+    assert.ok(paths['/api/v1/knowledge/prompt']);
   });
 });

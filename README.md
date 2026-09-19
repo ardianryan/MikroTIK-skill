@@ -239,12 +239,11 @@ Choose the integration method that best fits your engineering workflow:
 
 ---
 
-### ☁️ Mode 3: Web AI via Vercel Deployment & ChatGPT Actions
-Use this mode when you want ChatGPT Web buttons and Actions to execute commands on your router directly.
+### ☁️ Mode 3: Web AI via Vercel Deployment & ChatGPT Actions (Zero Router Credentials Needed)
+Deploy this repository as a **Serverless Knowledge & Intelligence Engine** so ChatGPT Custom GPTs or Claude can query certified runbooks, generate certified templates, validate mangle order, and sanitize router configs without ever connecting to your physical router.
 
-> **Why Vercel instead of GitHub Pages?**  
-> **GitHub Pages** only serves static files (HTML/CSS/JS) to browsers without a Node.js backend runtime, cannot store router credentials securely, and cannot open TCP/REST connections to your router.  
-> **Vercel** provides Serverless Functions (Node.js) in the cloud with an official public HTTPS endpoint designed specifically for OpenAPI / ChatGPT Actions.
+> **Zero Router Credentials Required:**  
+> You do **NOT** need to provide your router IP, password, or API credentials to Vercel. The router stays completely private in your LAN. Vercel simply serves as an intelligent offline reference and template generation backend.
 
 #### Quick 1-Minute Vercel Deployment:
 1. **Deploy to Vercel:**
@@ -252,21 +251,12 @@ Use this mode when you want ChatGPT Web buttons and Actions to execute commands 
    # Login and deploy directly from your terminal
    npx vercel
    ```
-2. **Configure Environment Variables in Vercel Dashboard:**
-   - `ROUTEROS_HOST`: Your router hostname / DDNS (e.g. `xxx.sn.mynetname.net` or public IP / VPN address).
-   - `ROUTEROS_USER`: RouterOS API / REST administrator username.
-   - `ROUTEROS_PASSWORD`: Router password.
-   - `ROUTEROS_REST_PORT`: `443`.
-   - `ROUTEROS_USE_SSL`: `true`.
-   - `MTIK_API_KEY`: Secret authentication token (e.g. `my-secure-token-12345`).
-3. **Import into ChatGPT Custom GPT Actions:**
-   - In the Custom GPT Editor $\rightarrow$ **Actions** $\rightarrow$ **Create new action**.
+2. **Import into ChatGPT Custom GPT Actions:**
+   - In your Custom GPT Editor $\rightarrow$ **Actions** $\rightarrow$ **Create new action**.
    - Select **Import from URL** and enter:  
      `https://<your-project-name>.vercel.app/openapi.json`
-   - Under **Authentication**, select **API Key**, Auth Type: **Bearer**, and enter your `MTIK_API_KEY`.
-   - Save! ChatGPT can now inspect status, run security audits, and invoke MikroTik commands directly from the web interface.
-
-*(Homelab / Private LAN Note: If your router is behind CGNAT/NAT without a public IP, run `mtik serve --port 3000` on a local machine and expose it via free Cloudflare Tunnel: `cloudflared tunnel`)*.
+   - Authentication: **None** (or configure optional API Key if desired).
+   - Save! Your ChatGPT Custom GPT now has instant access to certified configuration templates across all 10 tracks, offline mangle order validator, and config sanitizers.
 
 ---
 

@@ -3,28 +3,37 @@ export class OpenApiGenerator {
     return {
       openapi: '3.1.0',
       info: {
-        title: 'MikroTik RouterOS v7 Certified Automation API',
-        description: 'Production-grade enterprise automation API for MikroTik RouterOS v7. Supports security auditing, policy routing, certified template generation, and atomic CLI execution.',
+        title: 'MikroTik RouterOS v7 Certified Knowledge & Intelligence API',
+        description: 'Zero-credential certified knowledge engine for MikroTik RouterOS v7. Provides 10-track certification runbooks, template generation, mangle order validation, configuration sanitization, and system prompt intelligence for ChatGPT & Claude.',
         version: '1.1.0',
       },
       servers: [
         {
           url: serverUrl,
-          description: 'Production API Server',
+          description: 'Production Knowledge Server',
         },
       ],
       paths: {
-        '/api/v1/action/status': {
+        '/api/v1/knowledge/tracks': {
           get: {
-            operationId: 'getSystemStatus',
-            summary: 'Get RouterOS system health, CPU, memory, and uptime',
+            operationId: 'listCertificationTracks',
+            summary: 'List all 10 official MikroTik Certification tracks and curriculum topics',
+            description: 'Returns available certification tracks including MTCNA, MTCRE, MTCINE, MTCTCE, MTCSWE, MTCSE, MTCIPv6E, MTCUME, MTCEWE, and MTCWE.',
             responses: {
               '200': {
-                description: 'System status summary',
+                description: 'List of all 10 certification tracks',
                 content: {
                   'application/json': {
                     schema: {
-                      type: 'object',
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          track: { type: 'string' },
+                          title: { type: 'string' },
+                          description: { type: 'string' },
+                        },
+                      },
                     },
                   },
                 },
@@ -32,91 +41,11 @@ export class OpenApiGenerator {
             },
           },
         },
-        '/api/v1/action/audit': {
-          get: {
-            operationId: 'runSecurityAudit',
-            summary: 'Run 10-Pillar Security Audit for RouterOS v7',
-            responses: {
-              '200': {
-                description: 'Security audit report with numbered findings (F-01..F-10)',
-                content: {
-                  'application/json': {
-                    schema: {
-                      type: 'object',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        '/api/v1/action/route-force': {
-          post: {
-            operationId: 'forceRouting',
-            summary: 'Safely assign client IP to specific routing table (ISP1/ISP2) with 4-tier mangle order verification',
-            requestBody: {
-              required: true,
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    required: ['ip', 'table'],
-                    properties: {
-                      ip: { type: 'string', description: 'Client IP address (e.g. 192.168.88.50)' },
-                      table: { type: 'string', description: 'Target routing mark table (e.g. to_ISP1)' },
-                      comment: { type: 'string', description: 'Descriptive comment for rule' },
-                      dryRun: { type: 'boolean', description: 'Simulate without applying changes' },
-                    },
-                  },
-                },
-              },
-            },
-            responses: {
-              '200': {
-                description: 'Route enforcement result',
-                content: {
-                  'application/json': {
-                    schema: { type: 'object' },
-                  },
-                },
-              },
-            },
-          },
-        },
-        '/api/v1/action/exec': {
-          post: {
-            operationId: 'executeCommand',
-            summary: 'Execute raw RouterOS CLI script atomically via REST /execute or API fallback',
-            requestBody: {
-              required: true,
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    required: ['command'],
-                    properties: {
-                      command: { type: 'string', description: 'Raw RouterOS CLI command' },
-                    },
-                  },
-                },
-              },
-            },
-            responses: {
-              '200': {
-                description: 'Execution response',
-                content: {
-                  'application/json': {
-                    schema: { type: 'object' },
-                  },
-                },
-              },
-            },
-          },
-        },
-        '/api/v1/action/template': {
+        '/api/v1/knowledge/template': {
           get: {
             operationId: 'generateTemplate',
-            summary: 'Generate certified configuration template for any of 10 MikroTik Certification tracks',
+            summary: 'Generate production configuration script for any of the 10 MikroTik Certification tracks',
+            description: 'Produces certified, vendor-neutral RouterOS v7 configuration scripts adhering to official best practices.',
             parameters: [
               {
                 name: 'track',
@@ -124,9 +53,20 @@ export class OpenApiGenerator {
                 required: true,
                 schema: {
                   type: 'string',
-                  enum: ['mtcna', 'mtcre', 'mtcine', 'mtctce', 'mtcswe', 'mtcse', 'mtcipv6e', 'mtcume', 'mtcewe', 'mtcwe'],
+                  enum: [
+                    'mtcna',
+                    'mtcre',
+                    'mtcine',
+                    'mtctce',
+                    'mtcswe',
+                    'mtcse',
+                    'mtcipv6e',
+                    'mtcume',
+                    'mtcewe',
+                    'mtcwe',
+                  ],
                 },
-                description: 'Certification track code',
+                description: 'Certification track code (e.g. mtcswe, mtcine, mtctce)',
               },
             ],
             responses: {
@@ -134,7 +74,115 @@ export class OpenApiGenerator {
                 description: 'Certified configuration template script',
                 content: {
                   'application/json': {
-                    schema: { type: 'object' },
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        track: { type: 'string' },
+                        title: { type: 'string' },
+                        description: { type: 'string' },
+                        script: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/api/v1/knowledge/validate': {
+          post: {
+            operationId: 'validateMangleOrder',
+            summary: 'Validate firewall mangle placement and FIB table registration offline',
+            description: 'Analyzes proposed firewall mangle placement against the deterministic 4-tier hierarchy (Bypass -> Client Overrides -> PCC -> MSS Clamping) without connecting to a router.',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: ['routingMark'],
+                    properties: {
+                      routingMark: { type: 'string', description: 'Proposed routing table name (e.g. to_ISP1)' },
+                      existingTables: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        description: 'List of registered routing tables with fib=yes',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              '200': {
+                description: 'Validation result',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        valid: { type: 'boolean' },
+                        reason: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/api/v1/knowledge/sanitize': {
+          post: {
+            operationId: 'sanitizeConfiguration',
+            summary: 'Sanitize and redact sensitive identifiers from any raw RouterOS configuration text',
+            description: 'Redacts MAC addresses, serial numbers, passwords, preshared keys, and VPN identifiers offline so configurations can be safely shared with AI.',
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    required: ['configText'],
+                    properties: {
+                      configText: { type: 'string', description: 'Raw RouterOS configuration text or script' },
+                    },
+                  },
+                },
+              },
+            },
+            responses: {
+              '200': {
+                description: 'Sanitized configuration text',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        sanitized: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        '/api/v1/knowledge/prompt': {
+          get: {
+            operationId: 'getCertifiedPrompt',
+            summary: 'Retrieve certified RouterOS v7 Senior Network Engineer system prompt',
+            description: 'Returns the optimized engineering system prompt enforcing 1-click copy-pasteable script blocks and vendor-neutral naming.',
+            responses: {
+              '200': {
+                description: 'System prompt content',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        systemPrompt: { type: 'string' },
+                      },
+                    },
                   },
                 },
               },
@@ -142,21 +190,6 @@ export class OpenApiGenerator {
           },
         },
       },
-      components: {
-        securitySchemes: {
-          BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT or API Key',
-            description: 'Enter your MTIK_API_KEY as Bearer token',
-          },
-        },
-      },
-      security: [
-        {
-          BearerAuth: [],
-        },
-      ],
     };
   }
 }
