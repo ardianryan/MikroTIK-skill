@@ -617,4 +617,58 @@ program
     }
   });
 
+program
+  .command('exec')
+  .alias('run')
+  .description('Execute a raw RouterOS CLI script atomically via REST /execute or API fallback.')
+  .argument('<script>', 'The RouterOS script command to execute')
+  .action(async (script) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+    try {
+      console.log(chalk.blue(`Executing on router: ${chalk.bold(script)}`));
+      const res = await conn.executeScript(script);
+      console.log(chalk.green('✔ Command executed successfully.'));
+      if (res && (typeof res !== 'object' || Object.keys(res as object).length > 0)) {
+        console.log(ConfigSanitizer.sanitizeJson(res));
+      }
+    } catch (err) {
+      console.error(chalk.red(`Execution failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
+program
+  .command('rest')
+  .description('Send direct HTTP REST API requests to RouterOS v7 (/rest/<endpoint>).')
+  .argument('<method>', 'HTTP method: GET | POST | PUT | PATCH | DELETE')
+  .argument('<endpoint>', 'REST path (e.g. /ip/address, /system/resource, /export)')
+  .argument('[data]', 'Optional JSON request body string')
+  .action(async (method, endpoint, data) => {
+    const config = loadRouterConfig();
+    const conn = new ConnectionManager(config);
+    try {
+      let body: unknown = undefined;
+      if (data) {
+        try {
+          body = JSON.parse(data);
+        } catch {
+          body = data;
+        }
+      }
+      const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      console.log(chalk.blue(`${method.toUpperCase()} /rest${formattedEndpoint}`));
+      const res = await conn.restRequest(formattedEndpoint, method.toUpperCase(), body);
+      console.log(chalk.green('✔ Response:'));
+      console.log(JSON.stringify(ConfigSanitizer.sanitizeJson(res), null, 2));
+    } catch (err) {
+      console.error(chalk.red(`REST call failed: ${err instanceof Error ? err.message : String(err)}`));
+      process.exitCode = 1;
+    } finally {
+      await conn.close();
+    }
+  });
+
 program.parse(process.argv);

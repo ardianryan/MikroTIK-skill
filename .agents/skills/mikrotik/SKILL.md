@@ -19,6 +19,7 @@ references:
   - references/wireguard-vpn.md
   - references/docker-containers.md
   - references/rest-api.md
+  - references/cli-rest-complete-reference.md
   - references/official-manual-map.md
 ---
 
@@ -361,6 +362,10 @@ mtik template --list                          # List all 10 certified configurat
 mtik template <track>                         # Print certified production configuration
 mtik template <track> -o <file.rsc>           # Save configuration script to RouterOS .rsc file
 
+# Universal CLI & REST Execution (Omnipotent Tooling)
+mtik exec "<ros_script>"                      # Execute arbitrary RouterOS CLI script atomically
+mtik rest <GET|POST|PUT|PATCH|DELETE> <path>  # Perform direct REST API request to RouterOS v7
+
 # IDE MCP Setup
 mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ```
@@ -368,19 +373,23 @@ mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ### Model Context Protocol (`mtik-mcp`) Tools
 - `mikrotik_test_connection`: Verifies device connectivity, authentication, and transport mode (REST HTTPS or Binary 8728).
 - `mikrotik_get_system_status`: Returns CPU load, memory usage, RouterOS version, uptime, and active interface link status.
-- `mikrotik_audit_security`: Performs automated 7-pillar security audit and returns findings with remediation commands.
+- `mikrotik_audit_security`: Performs automated 10-pillar security audit and returns findings with remediation commands.
 - `mikrotik_list_mangle`: Fetches all firewall mangle rules with index ordering and tier classifications.
 - `mikrotik_force_routing`: Directs an IP address to a routing table. Supports `dryRun: true` for unified diff preview and automated 30s watchdog rollback.
 - `mikrotik_manage_dhcp_lease`: Queries active leases and registers static IP/MAC bindings.
 - `mikrotik_export_sanitized_config`: Exports full router configuration with all MACs, passwords, serials, and private tokens redacted.
 - `mikrotik_manage_container`: Lists running container status and initiates container restarts.
 - `mikrotik_get_adlist_status`: Queries status of `/ip dns adlist` malware/adblocker feeds.
+- `mikrotik_generate_template`: Generates standardized production configuration templates across all 10 certification tracks.
+- `mikrotik_execute_command`: Executes arbitrary RouterOS CLI command or script atomically with output sanitization.
+- `mikrotik_rest_query`: Sends direct HTTP REST API calls (GET, POST, PUT, PATCH, DELETE) to any `/rest/<menu>` endpoint.
 
 ---
 
 ## 9. Enterprise Reference Architecture Guides
 
 For detailed, step-by-step implementation templates, refer to:
+- [RouterOS v7 Complete CLI & REST API Master Reference](./references/cli-rest-complete-reference.md)
 - [MTCSWE: Advanced Switching, LACP Bonding & Multicast](./references/mtcswe-advanced-switching.md)
 - [MTCINE: Enterprise Inter-Networking, MPLS, VPLS & VRF](./references/mtcine-mpls-vpls-vrf.md)
 - [MTCEWE & MTCWE: Enterprise Wireless, Wi-Fi 6 & CAPsMAN v2](./references/mtcewe-enterprise-wifi.md)

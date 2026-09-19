@@ -319,6 +319,17 @@ export class ConnectionManager {
     );
   }
 
+  async executeScript(script: string): Promise<unknown> {
+    return this.executeWithFallback(
+      (c) => c.executeScript(script),
+      (c) => c.executeScript(script)
+    );
+  }
+
+  async restRequest<T>(endpoint: string, method: string = 'GET', body?: unknown): Promise<T> {
+    return this.restClient.request<T>(endpoint, method, body);
+  }
+
   async close(): Promise<void> {
     await this.binaryClient.close();
   }

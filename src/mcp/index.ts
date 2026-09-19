@@ -131,6 +131,43 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['track'],
         },
       },
+      {
+        name: 'mikrotik_execute_command',
+        description: 'Execute arbitrary RouterOS CLI command or script atomically via REST /execute or binary API fallback. Sanitizes all output identifiers.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            command: {
+              type: 'string',
+              description: 'The exact RouterOS CLI command or script to execute',
+            },
+          },
+          required: ['command'],
+        },
+      },
+      {
+        name: 'mikrotik_rest_query',
+        description: 'Perform direct HTTP REST API requests to any RouterOS v7 endpoint (/rest/<endpoint>) with GET, POST, PUT, PATCH, or DELETE.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            endpoint: {
+              type: 'string',
+              description: 'REST endpoint path (e.g. "/ip/address", "/interface/bridge", "/system/resource")',
+            },
+            method: {
+              type: 'string',
+              enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+              description: 'HTTP method (default: GET)',
+            },
+            body: {
+              type: 'object',
+              description: 'Optional JSON payload for POST, PUT, or PATCH requests',
+            },
+          },
+          required: ['endpoint'],
+        },
+      },
     ],
   };
 });
@@ -363,6 +400,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               text: `# ${tpl.title}\n# ${tpl.description}\n\n${tpl.script}`,
             },
           ],
+        };
+      }
+
+      case 'mikrotik_execute_command': {
+        const cmd = String(args?.command || '').trim();
+        if (!cmd) throw new Error('Parameter "command" is required.');
+        const res = await conn.executeScript(cmd);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(ConfigSanitizer.sanitizeJson(res || { status: 'success' }), null, 2) }],
+        };
+      }
+
+      case 'mikrotik_rest_query': {
+        const endpoint = String(args?.endpoint || '').trim();
+        const method = String(args?.method || 'GET').toUpperCase();
+        const body = args?.body;
+        const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const res = await conn.restRequest(formattedEndpoint, method, body);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(ConfigSanitizer.sanitizeJson(res), null, 2) }],
         };
       }
 

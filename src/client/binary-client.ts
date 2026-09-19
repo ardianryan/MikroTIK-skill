@@ -217,4 +217,16 @@ export class RouterOsBinaryClient {
   async getIpv6Filters(): Promise<FirewallFilterRule[]> {
     return this.writeQuery<FirewallFilterRule>('/ipv6/firewall/filter/print');
   }
+
+  async executeScript(script: string): Promise<unknown> {
+    await this.connect();
+    if (!this.api) throw new Error('Not connected');
+    const tempName = `mtik_tmp_${Date.now()}`;
+    await this.api.write(['/system/script/add', `=name=${tempName}`, `=source=${script}`]);
+    try {
+      return await this.api.write(['/system/script/run', `=number=${tempName}`]);
+    } finally {
+      await this.api.write(['/system/script/remove', `=numbers=${tempName}`]).catch(() => {});
+    }
+  }
 }
