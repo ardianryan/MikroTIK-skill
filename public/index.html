@@ -3,23 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; font-src 'self' data:; img-src 'self' data: https:;">
   <title>MikroTik Skill &mdash; Remote MCP &amp; OpenAPI Knowledge Gateway</title>
   <style>
     :root {
-      --bg: #0d1117;
-      --card-bg: #161b22;
-      --card-hover: #1c2128;
-      --border: #30363d;
-      --text: #c9d1d9;
-      --text-heading: #f0f6fc;
-      --text-muted: #8b949e;
-      --accent: #58a6ff;
-      --accent-hover: #79b8ff;
-      --green: #3fb950;
-      --purple: #bc8cff;
-      --code-bg: #090d13;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --bg: #090c10;
+      --bg-surface: #0f141c;
+      --bg-card: #151b26;
+      --bg-code: #080b0f;
+      --border: #212a3a;
+      --border-subtle: #19212e;
+      --border-focus: #38bdf8;
+      --text: #e2e8f0;
+      --text-heading: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.15);
+      --purple: #a855f7;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     }
     * {
       box-sizing: border-box;
@@ -31,413 +38,620 @@
       color: var(--text);
       font-family: var(--font-sans);
       line-height: 1.6;
-      padding: 2.5rem 1.5rem;
+      padding: 3rem 1.5rem;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
     .container {
-      max-width: 920px;
+      max-width: 1080px;
       margin: 0 auto;
     }
     header {
       margin-bottom: 2.5rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 2rem;
     }
-    .badge-row {
+    .nav-bar {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    .badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.2rem 0.6rem;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      color: var(--text-muted);
-    }
-    .badge-active {
-      border-color: rgba(63, 185, 80, 0.4);
-      color: var(--green);
-      background: rgba(63, 185, 80, 0.1);
-    }
-    .badge-mcp {
-      border-color: rgba(188, 140, 255, 0.4);
-      color: var(--purple);
-      background: rgba(188, 140, 255, 0.1);
-    }
-    h1 {
-      color: var(--text-heading);
-      font-size: 1.85rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-    }
-    p.lead {
-      color: var(--text-muted);
-      font-size: 1.05rem;
-    }
-    .callout {
-      background: rgba(88, 166, 255, 0.08);
-      border: 1px solid rgba(88, 166, 255, 0.25);
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 2rem;
-      font-size: 0.92rem;
-    }
-    .callout strong {
-      color: var(--text-heading);
-    }
-    h2 {
-      color: var(--text-heading);
-      font-size: 1.35rem;
-      font-weight: 600;
-      margin-top: 2.25rem;
-      margin-bottom: 1rem;
-    }
-    .grid-tools {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .tool-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
       justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
-    .tool-box h3 {
-      color: var(--text-heading);
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin-bottom: 0.35rem;
-    }
-    .tool-box p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.85rem;
-    }
-    .code-snippet {
-      position: relative;
-      margin-top: 0.5rem;
-    }
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--text);
-    }
-    .copy-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 0.72rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .copy-btn:hover {
-      color: var(--text-heading);
-      border-color: var(--accent);
-    }
-    .endpoints {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .endpoint-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-    }
-    .endpoint-header {
+    .brand {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      text-decoration: none;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      letter-spacing: -0.05em;
+    }
+    .brand-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+    }
+    .brand-version {
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: var(--accent-glow);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-muted);
+    }
+    .badge-status {
+      border-color: rgba(16, 185, 129, 0.3);
+      color: var(--success);
+      background: var(--success-glow);
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--success);
+    }
+    .hero-title {
+      font-size: 2.15rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 820px;
+      line-height: 1.6;
+    }
+    .security-notice {
+      margin-top: 1.5rem;
+      background: rgba(56, 189, 248, 0.05);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+    }
+    .security-notice strong {
+      color: var(--text-heading);
+      white-space: nowrap;
+    }
+    .section-header {
+      margin-top: 2.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+    }
+    .section-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Interactive Connect Tabs */
+    .connect-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    }
+    .tab-bar {
+      display: flex;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.85rem 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all var(--ease-smooth) 160ms;
+    }
+    .tab-btn:hover {
+      color: var(--text-heading);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: var(--bg-surface);
+    }
+    .tab-body {
+      padding: 1.5rem;
+    }
+    .tab-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .config-file-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      background: var(--bg-code);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    .copy-action-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-heading);
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all var(--ease-smooth) 160ms;
+    }
+    .copy-action-btn:hover {
+      background: var(--border);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .copy-action-btn:active {
+      transform: translateY(0);
+    }
+    .code-container {
+      position: relative;
+    }
+    .code-block {
+      background: var(--bg-code);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+      tab-size: 2;
+    }
+    .tab-instruction {
+      margin-top: 0.85rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Grid of Tools */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .tool-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      transition: border-color 160ms ease, transform 160ms ease;
+    }
+    .tool-item:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+    }
+    .tool-title {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--accent);
       margin-bottom: 0.35rem;
     }
-    .method {
+    .tool-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Endpoint Directory */
+    .endpoint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .endpoint-row {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .endpoint-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 240px;
+    }
+    .method-tag {
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       padding: 0.15rem 0.45rem;
-      border-radius: 3px;
+      border-radius: 4px;
       text-transform: uppercase;
     }
-    .method-get {
-      background: rgba(88, 166, 255, 0.15);
-      color: var(--accent);
-      border: 1px solid rgba(88, 166, 255, 0.3);
-    }
-    .method-post {
-      background: rgba(63, 185, 80, 0.15);
-      color: var(--green);
-      border: 1px solid rgba(63, 185, 80, 0.3);
-    }
-    .method-sse {
-      background: rgba(188, 140, 255, 0.15);
+    .tag-sse {
+      background: rgba(168, 85, 247, 0.15);
       color: var(--purple);
-      border: 1px solid rgba(188, 140, 255, 0.3);
+      border: 1px solid rgba(168, 85, 247, 0.3);
     }
-    .path a {
-      color: var(--text-heading);
+    .tag-get {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .tag-post {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .endpoint-path {
       font-family: var(--font-mono);
-      font-size: 0.92rem;
+      font-size: 0.88rem;
+      color: var(--text-heading);
       text-decoration: none;
       font-weight: 500;
     }
-    .path a:hover {
+    .endpoint-path:hover {
       color: var(--accent);
       text-decoration: underline;
     }
-    .description {
-      font-size: 0.88rem;
+    .endpoint-desc {
+      font-size: 0.82rem;
       color: var(--text-muted);
     }
+
     footer {
-      margin-top: 3rem;
+      margin-top: 4rem;
       padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.82rem;
+      color: var(--text-dim);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 1rem;
     }
     footer a {
-      color: var(--accent);
+      color: var(--text-muted);
       text-decoration: none;
     }
     footer a:hover {
-      text-decoration: underline;
+      color: var(--text-heading);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1.5rem 1rem;
+      }
+      .hero-title {
+        font-size: 1.65rem;
+      }
+      .tab-btn {
+        padding: 0.75rem 0.9rem;
+        font-size: 0.8rem;
+      }
+      .endpoint-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="badge-row">
-        <span class="badge badge-active">Gateway Online</span>
-        <span class="badge badge-mcp">Remote MCP SSE Ready</span>
-        <span class="badge">OpenAPI 3.1.0</span>
-        <span class="badge">RouterOS v7</span>
-        <span class="badge">Zero Router Credentials</span>
+      <div class="nav-bar">
+        <a href="/" class="brand">
+          <div class="brand-mark">M</div>
+          <span class="brand-text">MikroTik-Skill</span>
+          <span class="brand-version">v1.1.0</span>
+        </a>
+        <div class="header-badges">
+          <span class="badge badge-status" id="healthBadge">
+            <span class="status-dot"></span>
+            <span id="healthText">Probing Gateway...</span>
+          </span>
+          <span class="badge">OpenAPI 3.1.0</span>
+          <span class="badge">RouterOS v7</span>
+        </div>
       </div>
-      <h1>MikroTik Skill Knowledge &amp; Remote MCP Gateway</h1>
-      <p class="lead">Universal air-gapped intelligence engine, certified configuration curricula, and Model Context Protocol (MCP) server for AI coding assistants, IDEs, and chatbots.</p>
+
+      <h1 class="hero-title">Universal Remote MCP &amp; Certified Knowledge Gateway</h1>
+      <p class="hero-subtitle">Production-grade Model Context Protocol (MCP) server and air-gapped RouterOS v7 intelligence for AI coding agents, IDEs, and chatbots without requiring physical router credentials.</p>
+
+      <div class="security-notice">
+        <strong>Zero Router Credentials Required:</strong>
+        <span>This remote deployment functions purely as an offline reference, validation, and script generation engine. No IP addresses, router passwords, or API ports are exposed or stored.</span>
+      </div>
     </header>
 
-    <div class="callout">
-      <strong>Zero Router Credentials Required:</strong> This gateway operates strictly as an air-gapped knowledge and validation engine. Connect any AI tool below without configuring router passwords or opening ports.
-    </div>
+    <main>
+      <div class="section-header">
+        <h2 class="section-title">1-Click AI Assistant &amp; IDE Setup</h2>
+        <p class="section-desc">Select your environment to copy the exact configuration block.</p>
+      </div>
 
-    <h2>1-Click AI Tool Setup (Remote MCP &amp; OpenAPI)</h2>
-    <div class="grid-tools">
-      <!-- Cursor -->
-      <div class="tool-box">
-        <div>
-          <h3>Cursor IDE</h3>
-          <p>Add to <code>.cursor/mcp.json</code> or via Features &gt; MCP &gt; Add Server (Type: SSE).</p>
+      <div class="connect-card">
+        <div class="tab-bar" role="tablist">
+          <button class="tab-btn active" onclick="selectTab('cursor')" id="btn-cursor" role="tab">Cursor IDE</button>
+          <button class="tab-btn" onclick="selectTab('windsurf')" id="btn-windsurf" role="tab">Windsurf IDE</button>
+          <button class="tab-btn" onclick="selectTab('claude-desktop')" id="btn-claude-desktop" role="tab">Claude Desktop</button>
+          <button class="tab-btn" onclick="selectTab('vscode')" id="btn-vscode" role="tab">VS Code (Cline / Roo)</button>
+          <button class="tab-btn" onclick="selectTab('claude-code')" id="btn-claude-code" role="tab">Claude Code CLI</button>
+          <button class="tab-btn" onclick="selectTab('chatgpt')" id="btn-chatgpt" role="tab">ChatGPT Custom GPT</button>
         </div>
-        <div class="code-snippet">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-          <pre>{
-  "mcpServers": {
-    "mikrotik": {
-      "url": "https://mikrotik-skill.vercel.app/sse"
-    }
-  }
-}</pre>
+
+        <div class="tab-body">
+          <div class="tab-meta">
+            <span class="config-file-label" id="tabTargetFile">.cursor/mcp.json</span>
+            <button class="copy-action-btn" onclick="copySnippet()" id="copySnippetBtn">
+              Copy Configuration
+            </button>
+          </div>
+          <div class="code-container">
+            <pre class="code-block" id="tabCodeBlock"></pre>
+          </div>
+          <p class="tab-instruction" id="tabInstruction"></p>
         </div>
       </div>
 
-      <!-- Windsurf -->
-      <div class="tool-box">
-        <div>
-          <h3>Windsurf IDE</h3>
-          <p>Add to <code>~/.codeium/windsurf/mcp_config.json</code> under <code>mcpServers</code>.</p>
+      <div class="section-header">
+        <h2 class="section-title">Remote Capabilities &amp; Knowledge Tools</h2>
+        <p class="section-desc">Available natively to any connected AI agent via MCP protocol.</p>
+      </div>
+
+      <div class="tools-grid">
+        <div class="tool-item">
+          <div class="tool-title">mikrotik_generate_template</div>
+          <div class="tool-desc">Generates production-grade RouterOS v7 CLI configurations across all 10 MikroTik Certification tracks (MTCNA, MTCRE, MTCSE, MTCSWE, MTCIPv6E, MTCUME, MTCEWE, MTCTCE, WireGuard, and AdList).</div>
         </div>
-        <div class="code-snippet">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-          <pre>{
-  "mcpServers": {
-    "mikrotik": {
-      "url": "https://mikrotik-skill.vercel.app/sse"
-    }
-  }
-}</pre>
+        <div class="tool-item">
+          <div class="tool-title">mikrotik_get_chat_prompt</div>
+          <div class="tool-desc">Returns the certified Senior Network Engineer prompt guidelines ensuring AI assistants produce copy-pasteable script blocks and strictly avoid deprecated RouterOS v6 syntax.</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-title">mikrotik_sanitize_config</div>
+          <div class="tool-desc">Deterministic redactor that strips MAC addresses, serial numbers, passwords, pre-shared keys, and VPN identifiers before sharing configs with LLMs or public forums.</div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-title">mikrotik_validate_routing_mark</div>
+          <div class="tool-desc">Validates custom routing table registration and kernel FIB integrity (`fib=yes`) before firewall mangle rule injection.</div>
         </div>
       </div>
 
-      <!-- Claude Desktop -->
-      <div class="tool-box">
-        <div>
-          <h3>Claude Desktop</h3>
-          <p>Add to <code>claude_desktop_config.json</code> using the standard mcp-remote bridge.</p>
-        </div>
-        <div class="code-snippet">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-          <pre>{
-  "mcpServers": {
-    "mikrotik": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mikrotik-skill.vercel.app/sse"
-      ]
-    }
-  }
-}</pre>
-        </div>
+      <div class="section-header">
+        <h2 class="section-title">HTTP &amp; OpenAPI Directory</h2>
+        <p class="section-desc">Direct endpoints available for automated curl probes, OpenAPI agents, and CI jobs.</p>
       </div>
 
-      <!-- VS Code (Cline / Roo Code / Continue) -->
-      <div class="tool-box">
-        <div>
-          <h3>VS Code (Cline / Roo)</h3>
-          <p>Add to Cline MCP settings tab with SSE transport.</p>
+      <div class="endpoint-list">
+        <div class="endpoint-row">
+          <div class="endpoint-left">
+            <span class="method-tag tag-sse">SSE</span>
+            <a href="/sse" class="endpoint-path">/sse</a>
+          </div>
+          <div class="endpoint-desc">Native Model Context Protocol Server-Sent Events stream for AI clients.</div>
         </div>
-        <div class="code-snippet">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-          <pre>{
-  "mcpServers": {
-    "mikrotik": {
-      "type": "sse",
-      "url": "https://mikrotik-skill.vercel.app/sse"
-    }
-  }
-}</pre>
+        <div class="endpoint-row">
+          <div class="endpoint-left">
+            <span class="method-tag tag-get">GET</span>
+            <a href="/openapi.json" class="endpoint-path">/openapi.json</a>
+          </div>
+          <div class="endpoint-desc">OpenAPI 3.1.0 schema specification for Custom GPT Actions &amp; API tooling.</div>
         </div>
-      </div>
-
-      <!-- Claude Code CLI -->
-      <div class="tool-box">
-        <div>
-          <h3>Claude Code CLI</h3>
-          <p>Execute in your terminal to register the remote MCP server directly.</p>
+        <div class="endpoint-row">
+          <div class="endpoint-left">
+            <span class="method-tag tag-get">GET</span>
+            <a href="/api/v1/knowledge/tracks" class="endpoint-path">/api/v1/knowledge/tracks</a>
+          </div>
+          <div class="endpoint-desc">Enumerates all 10 MikroTik Certification track blueprints with topic breakdowns.</div>
         </div>
-        <div class="code-snippet">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-          <pre>claude mcp add --transport sse mikrotik https://mikrotik-skill.vercel.app/sse</pre>
-        </div>
-      </div>
-
-      <!-- ChatGPT Custom GPT -->
-      <div class="tool-box">
-        <div>
-          <h3>ChatGPT Custom GPT</h3>
-          <p>In GPT Builder &gt; Actions &gt; Import from URL (Authentication: None).</p>
-        </div>
-        <div class="code-snippet">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-          <pre>https://mikrotik-skill.vercel.app/openapi.json</pre>
+        <div class="endpoint-row">
+          <div class="endpoint-left">
+            <span class="method-tag tag-get">GET</span>
+            <a href="/health" class="endpoint-path">/health</a>
+          </div>
+          <div class="endpoint-desc">Service health and availability probe.</div>
         </div>
       </div>
-    </div>
-
-    <h2>Available Remote Endpoints</h2>
-    <div class="endpoints">
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-sse">SSE</span>
-          <span class="path"><a href="/sse">/sse</a></span>
-        </div>
-        <div class="description">Native Model Context Protocol (MCP) Server-Sent Events endpoint for remote AI agents and IDEs.</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-get">GET</span>
-          <span class="path"><a href="/openapi.json">/openapi.json</a></span>
-        </div>
-        <div class="description">OpenAPI 3.1.0 schema specification for ChatGPT Custom GPT Actions, Claude, and REST clients.</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-get">GET</span>
-          <span class="path"><a href="/health">/health</a></span>
-        </div>
-        <div class="description">Liveness probe verifying knowledge gateway availability.</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-get">GET</span>
-          <span class="path"><a href="/api/v1/knowledge/tracks">/api/v1/knowledge/tracks</a></span>
-        </div>
-        <div class="description">Lists all 10 MikroTik Certification Track blueprints (MTCNA, MTCRE, MTCSE, MTCSWE, etc.).</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-get">GET</span>
-          <span class="path"><a href="/api/v1/knowledge/template?track=mtcre">/api/v1/knowledge/template?track=mtcre</a></span>
-        </div>
-        <div class="description">Returns production-ready, 1-click RouterOS v7 CLI configuration scripts for the requested track.</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-get">GET</span>
-          <span class="path"><a href="/api/v1/knowledge/prompt">/api/v1/knowledge/prompt</a></span>
-        </div>
-        <div class="description">Exports Senior Network Engineer system prompt directives for LLM pair programming.</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-post">POST</span>
-          <span class="path"><a href="/api/v1/knowledge/sanitize">/api/v1/knowledge/sanitize</a></span>
-        </div>
-        <div class="description">Redacts passwords, MAC addresses, serial numbers, and VPN tokens from raw RouterOS configurations.</div>
-      </div>
-
-      <div class="endpoint-card">
-        <div class="endpoint-header">
-          <span class="method method-post">POST</span>
-          <span class="path"><a href="/api/v1/knowledge/validate">/api/v1/knowledge/validate</a></span>
-        </div>
-        <div class="description">Verifies FIB table presence and routing mark compliance before firewall mangle rule injection.</div>
-      </div>
-    </div>
+    </main>
 
     <footer>
-      <div>Part of <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener">MikroTik-Skill</a> Toolkit</div>
-      <div>GPL-3.0-or-later License</div>
+      <div>MikroTik-Skill &mdash; Production RouterOS v7 Automation &amp; AI Intelligence</div>
+      <div>
+        <a href="https://github.com/ardianryan/MikroTik-Skill" target="_blank" rel="noopener noreferrer">GitHub Repository</a> &bull;
+        <span>GPL-3.0-or-later</span>
+      </div>
     </footer>
   </div>
 
   <script>
-    function copyCode(btn) {
-      const pre = btn.parentElement.querySelector('pre');
-      navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
+    const SNIPPETS = {
+      cursor: {
+        file: ".cursor/mcp.json",
+        instruction: "Paste into .cursor/mcp.json in your project workspace, or configure via Cursor Settings > Features > MCP > Add Server (Type: SSE).",
+        code: JSON.stringify({
+          mcpServers: {
+            mikrotik: {
+              url: "https://mikrotik-skill.vercel.app/sse"
+            }
+          }
+        }, null, 2)
+      },
+      windsurf: {
+        file: "~/.codeium/windsurf/mcp_config.json",
+        instruction: "Paste inside the mcpServers object in your Windsurf global configuration file.",
+        code: JSON.stringify({
+          mcpServers: {
+            mikrotik: {
+              url: "https://mikrotik-skill.vercel.app/sse"
+            }
+          }
+        }, null, 2)
+      },
+      'claude-desktop': {
+        file: "claude_desktop_config.json",
+        instruction: "Claude Desktop connects to remote SSE endpoints via the lightweight mcp-remote bridge runner.",
+        code: JSON.stringify({
+          mcpServers: {
+            mikrotik: {
+              command: "npx",
+              args: [
+                "-y",
+                "mcp-remote",
+                "https://mikrotik-skill.vercel.app/sse"
+              ]
+            }
+          }
+        }, null, 2)
+      },
+      vscode: {
+        file: "VS Code / Cline MCP Settings",
+        instruction: "Add new MCP server in Cline settings tab with Server Name 'mikrotik', Type 'sse', and URL as shown.",
+        code: JSON.stringify({
+          mcpServers: {
+            mikrotik: {
+              type: "sse",
+              url: "https://mikrotik-skill.vercel.app/sse"
+            }
+          }
+        }, null, 2)
+      },
+      'claude-code': {
+        file: "Terminal Command",
+        instruction: "Execute this command in your terminal to register the remote MCP server directly in Claude Code.",
+        code: "claude mcp add --transport sse mikrotik https://mikrotik-skill.vercel.app/sse"
+      },
+      chatgpt: {
+        file: "ChatGPT Custom GPT Editor > Actions",
+        instruction: "In Custom GPT Editor > Actions > Create new action, select 'Import from URL', paste this URL, and set Authentication to 'None'.",
+        code: "https://mikrotik-skill.vercel.app/openapi.json"
+      }
+    };
+
+    let currentTab = 'cursor';
+
+    function selectTab(key) {
+      currentTab = key;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-' + key);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const data = SNIPPETS[key];
+      document.getElementById('tabTargetFile').innerText = data.file;
+      document.getElementById('tabCodeBlock').innerText = data.code;
+      document.getElementById('tabInstruction').innerText = data.instruction;
+    }
+
+    function copySnippet() {
+      const data = SNIPPETS[currentTab];
+      navigator.clipboard.writeText(data.code).then(() => {
+        const btn = document.getElementById('copySnippetBtn');
         const orig = btn.innerText;
-        btn.innerText = 'Copied!';
-        btn.style.color = 'var(--green)';
+        btn.innerText = 'Copied to Clipboard';
+        btn.style.color = 'var(--success)';
+        btn.style.borderColor = 'var(--success)';
         setTimeout(() => {
           btn.innerText = orig;
           btn.style.color = '';
+          btn.style.borderColor = '';
         }, 2000);
       });
     }
+
+    // Health probe
+    async function probeHealth() {
+      const badge = document.getElementById('healthBadge');
+      const text = document.getElementById('healthText');
+      try {
+        const t0 = performance.now();
+        const res = await fetch('/health');
+        const t1 = performance.now();
+        if (res.ok) {
+          const latency = Math.round(t1 - t0);
+          text.innerText = `Gateway Online (${latency}ms)`;
+        } else {
+          text.innerText = 'Gateway Error';
+          badge.classList.remove('badge-status');
+        }
+      } catch {
+        text.innerText = 'Gateway Active';
+      }
+    }
+
+    // Initialize default tab and health probe
+    selectTab('cursor');
+    probeHealth();
   </script>
 </body>
 </html>
