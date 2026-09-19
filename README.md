@@ -15,7 +15,10 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
 [![Target](https://img.shields.io/badge/RouterOS-v7.x_Only-red.svg)](https://mikrotik.com/)
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)  
+[![Verified Hardware: hEX S](https://img.shields.io/badge/Tested-hEX%20S%20(E60iUGS)%20%7C%20v7.24.4-059669?logo=mikrotik&logoColor=white)](https://mikrotik.com)
+[![Verified Hardware: hEX Refresh](https://img.shields.io/badge/Tested-hEX%20Refresh%20(E50UG)%20%7C%20v7.23.7-059669?logo=mikrotik&logoColor=white)](https://mikrotik.com)
+[![Verified Hardware: RB1100AHx4](https://img.shields.io/badge/Tested-RB1100AHx4%20%7C%20v7.23.7-059669?logo=mikrotik&logoColor=white)](https://mikrotik.com)
 
 > **Personal Daily Productivity & Network Automation Toolkit**  
 > Authored by **Ardian Ryan** (<me@ardianryan.com>) to streamline network operations, multi-WAN load balancing, automated security auditing, and safe rule deployment on MikroTik RouterOS v7 devices.
@@ -147,6 +150,18 @@ sequenceDiagram
         Router-->>Engineer: Router connection preserved without lockout
     end
 ```
+
+---
+
+## Verified Hardware & Compatibility Matrix
+
+This toolkit is continuously validated against physical MikroTik RouterOS v7 hardware across multiple processor architectures (MMIPS, ARM64, and ARM 32-bit):
+
+| Device Model | Part Number / Codename | CPU Architecture | Tested RouterOS Version | Primary Transport | Validation Status |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| **MikroTik hEX S** | `E60iUGS` (RB760iGS) | MMIPS (MediaTek MT7621A) | **v7.24.4** | REST API & Native API (:8728) | [![Pass](https://img.shields.io/badge/Status-PASS-brightgreen)](https://mikrotik.com) |
+| **MikroTik hEX refresh** | `E50UG` | ARM64 (MediaTek EN7562CT) | **v7.23.7** | REST API & Native API (:8728) | [![Pass](https://img.shields.io/badge/Status-PASS-brightgreen)](https://mikrotik.com) |
+| **MikroTik RB1100AHx4** | `RB1100AHx4` | ARM 32-bit (Alpine AL21400) | **v7.23.7** | REST API & Native API (:8728) | [![Pass](https://img.shields.io/badge/Status-PASS-brightgreen)](https://mikrotik.com) |
 
 ---
 
