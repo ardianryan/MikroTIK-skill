@@ -64,7 +64,7 @@ Managing MikroTik routers in multi-WAN environments often involves repetitive `.
 - **Automated 10-Pillar Security Audit:**
   - One-command audit evaluating DNS open resolvers, exposed administrative services, missing firewall input drops, IPv6 firewall parity, bridge STP loop protection, NTP clock drift, and Mangle Hairpin NAT leak risks.
 - **Deterministic Mangle Order Engine:**
-  - Prevents packet misrouting by enforcing the strict RouterOS hierarchy: **Bypass Rules** (`connection-nat-state=dstnat`, `LOCAL_BYPASS`) at index 0 $\rightarrow$ **Dedicated Client Overrides** $\rightarrow$ **PCC Load Balancing**.
+  - Prevents packet misrouting by enforcing the strict RouterOS hierarchy: **Bypass Rules** (`connection-nat-state=dstnat`, `LOCAL_BYPASS`) at index 0 → **Dedicated Client Overrides** → **PCC Load Balancing**.
 - **FIB Integrity Validation:**
   - Verifies custom routing tables are declared in `/routing table` with `fib=yes` before any Mangle rule is injected.
 - **30-Second Safe-Mode Watchdog:**
