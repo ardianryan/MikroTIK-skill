@@ -2,6 +2,10 @@
 name: mikrotik
 description: "Enterprise network automation, multi-WAN load balancing, security audits, and configuration runbooks for MikroTik RouterOS v7. Use when auditing RouterOS security, setting up dual-WAN failover/PCC, configuring WPA2/WPA3 Enterprise 802.1X RADIUS, deploying CAKE QoS, creating WireGuard tunnels, running containers, or managing IDE MCP integrations."
 references:
+  - references/packet-flow-v7.md
+  - references/bridge-vlan-switching.md
+  - references/enterprise-routing-ospf-bgp.md
+  - references/troubleshooting-protocol.md
   - references/radius-8021x.md
   - references/hotspot-portal.md
   - references/qos-cake.md
@@ -365,6 +369,10 @@ mtik install-mcp -t <antigravity|cursor|claude|windsurf|all> [--with-env]
 ## 9. Enterprise Reference Architecture Guides
 
 For detailed, step-by-step implementation templates, refer to:
+- [RouterOS v7 Packet Flow & Conntrack Invariants](./references/packet-flow-v7.md)
+- [Enterprise Bridge VLAN Filtering & L3HW Offloading](./references/bridge-vlan-switching.md)
+- [RouterOS v7 Enterprise Routing (OSPFv3 & BGP Multi-Homing)](./references/enterprise-routing-ospf-bgp.md)
+- [Certified Engineer 5-Layer Troubleshooting Protocol](./references/troubleshooting-protocol.md)
 - [RouterOS v7 REST API Architecture & Semantics](./references/rest-api.md)
 - [Official Manual Architecture & LLM Retrieval Map](./references/official-manual-map.md)
 - [WPA2/WPA3-Enterprise 802.1X & Dynamic VLAN Assignment](./references/radius-8021x.md)
@@ -375,7 +383,23 @@ For detailed, step-by-step implementation templates, refer to:
 
 ---
 
-## 10. RouterOS v7 REST API Engineering Specification
+## 10. MikroTik Certified Engineering Framework (Certification Alignment)
+
+This automation toolkit and AI agent skill are strictly standardized against official MikroTik Certified Engineering curricula:
+
+| Certification Track | Core Engineering Domain | Standardized Tooling / Runbook |
+|---|---|---|
+| **MTCNA** (Associate) | System health, Safe Mode watchdog, sanitized backup, DHCP snooping, Bridge architecture | `mtik status`, `mtik backup --sanitize`, `SafeModeWatchdog`, [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md) |
+| **MTCRE** (Routing) | Policy-Based Routing (PBR), recursive route failover with Virtual SLA, point-to-point addressing | `mikrotik_force_routing`, recursive target-scope, [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md) |
+| **MTCTCE** (Traffic Control) | Strict Packet Flow v7 pipeline, Conntrack states, 4-tier Mangle ordering, CAKE/FQ-CoDel | `MangleOrderEngine`, [`packet-flow-v7.md`](./references/packet-flow-v7.md), [`qos-cake.md`](./references/qos-cake.md) |
+| **MTCSE** (Security) | 7-Pillar Security Audit, MAC-Server isolation, service port hardening, DNS adlist sinkholing | `SecurityAuditor`, `mikrotik_audit_security`, `mikrotik_get_adlist_status` |
+| **MTCUME** (User Management) | User Manager v7 dynamic VLAN assignment, 802.1X EAP-TLS / PEAP, Hotspot captive portal | [`radius-8021x.md`](./references/radius-8021x.md), [`hotspot-portal.md`](./references/hotspot-portal.md) |
+| **MTCWE** (Wireless) | Wi-Fi 6 / 802.11ax CAPsMAN v2 on RouterOS v7 (`/interface wifi`), fast roaming (802.11r/k/v) | [`radius-8021x.md`](./references/radius-8021x.md), `/interface wifi` |
+| **MTCINE** (Inter-Networking) | BGP v7 engine rewrite (`template`/`connection`), routing filters, VXLAN overlay, L3HW offload | [`enterprise-routing-ospf-bgp.md`](./references/enterprise-routing-ospf-bgp.md), [`bridge-vlan-switching.md`](./references/bridge-vlan-switching.md) |
+
+---
+
+## 11. RouterOS v7 REST API Engineering Specification
 
 The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added in v7.9) provides a JSON wrapper over the console API, accessible via `https://<router_ip>/rest` (HTTPS 443) or `http://<router_ip>/rest` (HTTP 80).
 
@@ -443,11 +467,11 @@ The RouterOS v7 REST API (introduced in v7.1beta4, with HTTP `www` support added
 
 ---
 
-## 11. RouterOS v7 Subsystems Architecture & Standards
+## 12. RouterOS v7 Subsystems Architecture & Standards
 
 Directly derived from the official documentation at `manual.mikrotik.com`:
 
-### 11.1. Bridging & L3 Hardware Offloading (`l3hw`)
+### 12.1. Bridging & L3 Hardware Offloading (`l3hw`)
 - **Bridge VLAN Filtering:**
   Always configure VLANs using the unified bridge VLAN table rather than legacy master-port setups:
   ```routeros
@@ -461,7 +485,7 @@ Directly derived from the official documentation at `manual.mikrotik.com`:
   /ip route add dst-address=0.0.0.0/0 gateway=192.168.1.1
   ```
 
-### 11.2. Device Mode Hardening (`/system/device-mode`)
+### 12.2. Device Mode Hardening (`/system/device-mode`)
 RouterOS v7 includes a hardware security profile restricting dangerous features (`advanced`, `home`, `basic`, `ros`):
 - **Container Pre-requisite:** Running Docker containers requires:
   ```routeros
@@ -469,7 +493,7 @@ RouterOS v7 includes a hardware security profile restricting dangerous features 
   ```
   *(Requires physical reset button press or cold power cycle within 5 minutes to confirm).*
 
-### 11.3. Management Access & MAC Server Isolation
+### 12.3. Management Access & MAC Server Isolation
 - **Service Subnet Restrictions (`/ip service`):**
   Never expose management services to `0.0.0.0/0`:
   ```routeros
@@ -489,14 +513,14 @@ RouterOS v7 includes a hardware security profile restricting dangerous features 
   /tool mac-server ping set enabled=no
   ```
 
-### 11.4. Native DNS Sinkhole (`/ip dns adlist`)
+### 12.4. Native DNS Sinkhole (`/ip dns adlist`)
 In RouterOS v7.12+, malware and ad domains are blocked natively without bloated static regex tables:
 ```routeros
 /ip dns adlist add url="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" ssl-verify=yes
 /ip dns set cache-size=8192KiB
 ```
 
-### 11.5. Reference Retrieval Hierarchy (Local First, Live LLMs as Fallback)
+### 12.5. Reference Retrieval Hierarchy (Local First, Live LLMs as Fallback)
 
 All AI agents must strictly observe the two-tier knowledge hierarchy:
 
