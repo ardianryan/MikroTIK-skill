@@ -51,7 +51,6 @@ export class MikroTikHttpServer {
     const pathname = reqUrl.pathname;
     const method = (req.method || 'GET').toUpperCase();
 
-    // CORS preflight
     if (method === 'OPTIONS') {
       res.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
@@ -62,7 +61,6 @@ export class MikroTikHttpServer {
       return;
     }
 
-    // 1. Root & Discovery Endpoints
     if (pathname === '/' && method === 'GET') {
       this.sendJson(res, 200, {
         name: 'mikrotik-skill',
@@ -87,7 +85,6 @@ export class MikroTikHttpServer {
       return;
     }
 
-    // 2. Pure Knowledge & Intelligence Endpoints (100% Offline, Zero Router Credentials Needed)
     if (pathname === '/api/v1/knowledge/tracks' && method === 'GET') {
       const tracks = CertifiedTemplateGenerator.list();
       this.sendJson(res, 200, tracks);

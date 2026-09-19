@@ -684,15 +684,9 @@ program
     if (opts.output) {
       const outPath = path.resolve(process.cwd(), opts.output);
       fs.writeFileSync(outPath, prompt, 'utf-8');
-      console.log(chalk.green(`\n✔ System prompt saved to: ${chalk.bold(outPath)}\n`));
+      console.log(chalk.green(`System prompt saved to: ${outPath}`));
     } else {
-      console.log(chalk.cyan.bold(`\n# =========================================================`));
-      console.log(chalk.cyan.bold(`# MikroTik RouterOS v7 Certified Engineer System Prompt`));
-      console.log(chalk.gray(`# Optimized for ChatGPT Custom GPTs & Claude.ai Projects`));
-      console.log(chalk.cyan.bold(`# =========================================================\n`));
       console.log(prompt);
-      console.log(chalk.gray(`\nTip: Copy-paste the above into your ChatGPT Custom GPT Instructions or Claude Project Knowledge.`));
-      console.log('');
     }
   });
 
@@ -700,23 +694,13 @@ program
   .command('serve')
   .description('Start HTTP & OpenAPI Gateway Server for ChatGPT Actions and Remote MCP.')
   .option('-p, --port <number>', 'HTTP server port', '3000')
-  .option('--token <secret>', 'Bearer token / API key required for API requests')
   .action((opts) => {
     const port = parseInt(opts.port, 10) || 3000;
-    const server = new MikroTikHttpServer({
-      port,
-      apiKey: opts.token || process.env.MTIK_API_KEY,
-    });
+    const server = new MikroTikHttpServer({ port });
     server.listen(port);
-    console.log(chalk.cyan.bold(`\n🚀 MikroTik HTTP & OpenAPI Server running on port ${port}`));
-    console.log(chalk.gray(`- Health Check: http://localhost:${port}/health`));
-    console.log(chalk.gray(`- OpenAPI Schema: http://localhost:${port}/openapi.json`));
-    if (opts.token || process.env.MTIK_API_KEY) {
-      console.log(chalk.green(`🔒 Protected with Bearer token authentication.`));
-    } else {
-      console.log(chalk.yellow(`⚠️ Warning: No MTIK_API_KEY set. Requests are unauthenticated.`));
-    }
-    console.log(chalk.gray(`Press [Ctrl+C] to stop.\n`));
+    console.log(chalk.blue(`MikroTik HTTP Knowledge Server listening on port ${port}`));
+    console.log(chalk.gray(`- Health: http://localhost:${port}/health`));
+    console.log(chalk.gray(`- OpenAPI: http://localhost:${port}/openapi.json`));
   });
 
 program

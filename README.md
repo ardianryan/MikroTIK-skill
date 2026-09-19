@@ -191,28 +191,28 @@ MTIK_API_KEY=your_secret_api_token
 
 ---
 
-## 🚀 Easy-to-Use Guide
+## Integration Guide
 
-Choose the integration method that best fits your engineering workflow:
+Choose the integration method appropriate for your environment:
 
 | Mode | Target Platform | Deployment Required? | Usage Model |
 | :--- | :--- | :---: | :--- |
-| **Mode 1: Local IDE** | **Cursor, Claude Desktop, Antigravity, Windsurf** | ❌ **Zero Deploy** | Runs 100% locally via `stdio`. Direct local socket connection to router (`192.168.88.1`). |
-| **Mode 2: Web AI (Prompt)** | **ChatGPT Web, Claude.ai Web** | ❌ **Zero Deploy** | Export instructions via `mtik prompt`, paste into Custom GPT/Claude Project. AI generates 1-click ready scripts. |
-| **Mode 3: Web AI (Direct Actions)** | **ChatGPT Custom GPT Actions** | ☁️ **Vercel Deploy** | Deploy to Vercel to bridge cloud ChatGPT directly to your router via OpenAPI 3.1.0 endpoints. |
+| **Local IDE** | Cursor, Claude Desktop, Antigravity, Windsurf | No | Runs locally via `stdio`. Connects to router over local network (`192.168.88.1`). |
+| **Web AI (Prompt)** | ChatGPT Web, Claude.ai Web | No | Export instructions via `mtik prompt`, paste into Custom GPT/Claude Project. |
+| **Web AI (Actions)** | ChatGPT Custom GPT Actions | Vercel Deploy | Deploy to Vercel to serve OpenAPI 3.1.0 knowledge endpoints without router credentials. |
 
-### 🌟 Mode 1: Local IDE (Plug & Play, Zero Deployment)
+### Local Desktop IDE (stdio)
 1. Build the project:
    ```bash
    npm run build
    ```
-2. Add the server entry to your IDE's `mcp_config.json` or `claude_desktop_config.json`:
+2. Add the server configuration to your IDE's `mcp_config.json` or `claude_desktop_config.json`:
    ```json
    {
      "mcpServers": {
        "mikrotik": {
          "command": "node",
-         "args": ["/Users/ardianryan/Documents/MikroTIK-Skill/dist/mcp/index.js"],
+         "args": ["./dist/mcp/index.js"],
          "env": {
            "ROUTEROS_HOST": "192.168.88.1",
            "ROUTEROS_USER": "admin",
@@ -226,37 +226,34 @@ Choose the integration method that best fits your engineering workflow:
 
 ---
 
-### 💬 Mode 2: Web AI via Copy-Paste (ChatGPT & Claude.ai Web)
-1. Export the certified senior network engineer system prompt:
+### Web AI via Copy-Paste (ChatGPT & Claude.ai)
+1. Export the certified engineer system prompt:
    ```bash
    mtik prompt -o mikrotik-system-prompt.md
    ```
 2. Paste the contents into the **Instructions** field of your ChatGPT Custom GPT or Claude.ai Project.
-3. The AI assistant will strictly generate clean, contiguous `routeros` script blocks adhering to RouterOS v7 standards, ready to paste directly into WinBox Terminal or run via:
+3. The AI assistant generates standard `routeros` script blocks ready to paste directly into WinBox Terminal or execute via:
    ```bash
    mtik exec "<command-from-chatgpt>"
    ```
 
 ---
 
-### ☁️ Mode 3: Web AI via Vercel Deployment & ChatGPT Actions (Zero Router Credentials Needed)
-Deploy this repository as a **Serverless Knowledge & Intelligence Engine** so ChatGPT Custom GPTs or Claude can query certified runbooks, generate certified templates, validate mangle order, and sanitize router configs without ever connecting to your physical router.
+### Web AI via Vercel Deployment (OpenAPI Actions)
+Deploy as an OpenAPI knowledge and template generation service for ChatGPT Actions without exposing your physical router.
 
-> **Zero Router Credentials Required:**  
-> You do **NOT** need to provide your router IP, password, or API credentials to Vercel. The router stays completely private in your LAN. Vercel simply serves as an intelligent offline reference and template generation backend.
+> Zero Router Credentials Required: Vercel acts purely as an offline knowledge engine. Router credentials and IP addresses are not needed.
 
-#### Quick 1-Minute Vercel Deployment:
 1. **Deploy to Vercel:**
    ```bash
-   # Login and deploy directly from your terminal
    npx vercel
    ```
 2. **Import into ChatGPT Custom GPT Actions:**
-   - In your Custom GPT Editor $\rightarrow$ **Actions** $\rightarrow$ **Create new action**.
+   - In Custom GPT Editor -> **Actions** -> **Create new action**.
    - Select **Import from URL** and enter:  
      `https://<your-project-name>.vercel.app/openapi.json`
-   - Authentication: **None** (or configure optional API Key if desired).
-   - Save! Your ChatGPT Custom GPT now has instant access to certified configuration templates across all 10 tracks, offline mangle order validator, and config sanitizers.
+   - Authentication: **None**.
+   - Save. ChatGPT can now query certified templates, validate mangle hierarchies, and sanitize configs offline.
 
 ---
 
@@ -327,7 +324,7 @@ Add this entry to your `mcp_config.json` or `claude_desktop_config.json`:
   "mcpServers": {
     "mikrotik": {
       "command": "node",
-      "args": ["/Users/ardianryan/Documents/MikroTIK-Skill/dist/mcp/index.js"],
+      "args": ["./dist/mcp/index.js"],
       "env": {
         "ROUTEROS_HOST": "192.168.88.1",
         "ROUTEROS_USER": "admin",
